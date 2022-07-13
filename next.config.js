@@ -7,7 +7,7 @@ const nextConfig = {
 		return [
 			{
 				source: '/s/:path*',
-				destination: '/search/:path*',
+				destination: '/:path*',
 			},
 		];
 	},

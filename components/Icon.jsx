@@ -11,8 +11,6 @@ function isDarkColor(hex) {
 
 export default function Icon({ dark = false, svg, children, color = '0xffffff', style, ...props }) {
 	if (!svg && !children) return null;
-	// const colorHex = parseInt(color.replace('#', ''), 16);
-	// const dark = colorHex <= 0x181717;
 	const newColor = isDarkColor(color) && dark ? '#fff' : color;
 	return (
 		<span
@@ -23,7 +21,6 @@ export default function Icon({ dark = false, svg, children, color = '0xffffff', 
 				...style,
 			}}
 			{...props}
-			// dangerouslySetInnerHTML={{ __html: svg || children }}
 		>
 			{svg || children}
 		</span>

@@ -1,16 +1,16 @@
 import {
-	RiTaobaoFill,
-	RiYoutubeFill,
-	RiGithubFill,
-	RiBaiduFill,
-	RiZhihuLine,
-	RiWeiboFill,
-	RiWechatFill,
-	RiGoogleFill,
 	RiAmazonFill,
+	RiBaiduFill,
+	RiGithubFill,
+	RiGoogleFill,
+	RiTaobaoFill,
+	RiWechatFill,
+	RiWeiboFill,
+	RiYoutubeFill,
+	RiZhihuLine,
 } from 'react-icons/ri';
-import { SiMdnwebdocs, SiMicrosoftbing, SiBilibili, SiReddit } from 'react-icons/si';
-import { YouDaoIcon, JDIcon, TouTiaoIcon } from '../components/SiteIcons';
+import { SiBilibili, SiMdnwebdocs, SiReddit } from 'react-icons/si';
+import { JDIcon, TouTiaoIcon, YouDaoIcon } from '../components/SiteIcons';
 
 const engines = [
 	{

@@ -1,6 +1,6 @@
 import { Menu, Transition } from '@headlessui/react';
-import { Fragment, useEffect, useRef, useState } from 'react';
 import cx from 'classnames';
+import { Fragment } from 'react';
 import { FiLink } from 'react-icons/fi';
 
 export default function CustomMenu() {
