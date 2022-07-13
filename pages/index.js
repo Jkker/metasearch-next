@@ -68,13 +68,13 @@ export default function Search() {
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
-		const query = params.get('q');
-		if (query) {
-			setQuery(query);
+		const q = params.get('q');
+		if (q) {
+			setQuery(q);
 		}
 		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-		document.getElementById('search-input').focus();
+		if (!q) document.getElementById('search-input').focus();
 	}, []);
 
 	return (
