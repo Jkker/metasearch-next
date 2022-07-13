@@ -6,6 +6,12 @@
 	html {
 		scroll-behavior: smooth;
 	}
+	button {
+		-webkit-tap-highlight-color: transparent;
+	}
+	*:focus {
+		outline: none;
+	}
 }
 
 @layer utilities {
@@ -16,4 +22,9 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
+  .flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
