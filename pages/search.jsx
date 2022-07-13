@@ -32,6 +32,13 @@ const iFrameProps = {
 };
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
 
+const SiteStates = {
+	INIT: 'Init',
+	LOADING: 'Loading',
+	READY: 'Loaded',
+};
+const { INIT, LOADING, READY } = SiteStates;
+
 export default function Search() {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [initialLoad, setInitialLoad] = useState(false);
@@ -39,22 +46,17 @@ export default function Search() {
 
 	const TabListRef = useRef(null);
 	const dark = useDarkMode();
-	const data = useMemo(
-		() =>
-			engines.map(({ title, ...item }, index) => ({
-				title,
-				display: cx(
-					item.mobile === false && 'hidden sm:flex',
-					item.desktop === false && 'flex sm:hidden'
-				),
-				...item,
-			})),
-		[]
-	);
+	const data = engines.map(({ title, ...item }, index) => ({
+		title,
+		display: cx(
+			item.mobile === false && 'hidden sm:flex',
+			item.desktop === false && 'flex sm:hidden'
+		),
+		state: item.preload ? LOADING : INIT,
+		...item,
+	}));
 
-	const [loaded, setLoaded] = useState(
-		Object.fromEntries(data.map((item, index) => [index, false]))
-	);
+	const [tabState, setTabState] = useState(data.map(({ state }) => state));
 
 	const [query, setQuery] = useState('');
 
@@ -73,6 +75,17 @@ export default function Search() {
 			setQuery(query);
 		}
 	}, []);
+
+	const onEngineChange = (index) => {
+		setSelectedIndex(index);
+		setTabState((prev) => {
+			console.log('🌟', index, prev[index] === INIT ? LOADING : prev[index]);
+			return {
+				...prev,
+				[index]: prev[index] === INIT ? LOADING : prev[index],
+			};
+		});
+	};
 
 	return (
 		<div className='flex flex-col h-screen'>
@@ -101,7 +114,7 @@ export default function Search() {
 					<FiX />
 				</button>
 			</div>
-			<Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
+			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
 				<div className='tab-list flex w-full justify-between bg-gray-100 dark:bg-gray-800'>
 					<Tab.List
 						className='flex drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
@@ -114,12 +127,12 @@ export default function Search() {
 							});
 						}}
 					>
-						{data.map(({ icon, color, title, body, display, ...item }, index) => (
+						{data.map(({ icon, color, title, body, display, preload, ...item }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<button
 										className={cx(
-											'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] px-[10px]',
+											'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px]',
 											'transition-all duration-200 ease-in-out',
 											'bg-white dark:bg-gray-800',
 											'hover:shadow-lg hover:brightness-95 dark:hover:brightness-125',
@@ -141,7 +154,7 @@ export default function Search() {
 										}}
 									>
 										<>
-											{!loaded[index] && query && (
+											{tabState[index] === LOADING && query && (
 												<span className='absolute t-0 r-0'>
 													<LoadingIcon
 														className={cx(
@@ -182,38 +195,42 @@ export default function Search() {
 								key={data[0].title}
 								onLoad={(e) => {
 									setInitialLoad(true);
-									setLoaded((prev) => ({ ...prev, 0: true }));
+									setTabState((prev) => ({ ...prev, 0: true }));
 								}}
 							/>
 						)}
 					</Tab.Panel>
-					{data.slice(1, data.length).map(({ icon, title, url, body, display, ...item }, idx) => {
-						const index = idx + 1;
-						return (
-							<Tab.Panel
-								className={cx('max-w-screen overflow-auto w-full', display)}
-								key={index}
-								style={{
-									display: selectedIndex === index ? 'block' : 'none',
-								}}
-								static
-							>
-								{query && initialLoad && (
-									<iframe
-										id={`frame-${index}`}
-										title={title}
-										src={processUrl(url, query)}
-										key={title}
-										{...iFrameProps}
-										onLoad={(e) => {
-											console.log('🌟', title, 'Loaded');
-											setLoaded((prev) => ({ ...prev, [index]: true }));
-										}}
-									/>
-								)}
-							</Tab.Panel>
-						);
-					})}
+					{data
+						.slice(1, data.length)
+						.map(({ preload, icon, title, url, body, display, ...item }, idx) => {
+							const index = idx + 1;
+							const isSelected = selectedIndex === index;
+							return (
+								<Tab.Panel
+									className={cx('max-w-screen overflow-auto w-full', display)}
+									key={index}
+									style={{
+										display: isSelected ? 'block' : 'none',
+									}}
+									static
+								>
+									{query && initialLoad && (isSelected || preload) && (
+										<iframe
+											id={`frame-${index}`}
+											title={title}
+											loading={preload ? 'eager' : 'lazy'}
+											src={processUrl(url, query)}
+											key={title}
+											{...iFrameProps}
+											onLoad={(e) => {
+												console.log('🌟', title, 'Loaded');
+												setTabState((prev) => ({ ...prev, [index]: READY }));
+											}}
+										/>
+									)}
+								</Tab.Panel>
+							);
+						})}
 				</Tab.Panels>
 			</Tab.Group>
 		</div>
