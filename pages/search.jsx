@@ -102,7 +102,7 @@ export default function Search() {
 				</button>
 			</div>
 			<Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
-				<div className='tab-list flex w-full justify-between bg-gray-200 dark:bg-gray-800'>
+				<div className='tab-list flex w-full justify-between bg-gray-100 dark:bg-gray-800'>
 					<Tab.List
 						className='flex drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
 						ref={TabListRef}
