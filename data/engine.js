@@ -7,6 +7,7 @@ import {
 	RiWeiboFill,
 	RiWechatFill,
 	RiGoogleFill,
+	RiAmazonFill,
 } from 'react-icons/ri';
 import { SiMdnwebdocs, SiMicrosoftbing, SiBilibili, SiReddit } from 'react-icons/si';
 import { YouDaoIcon, JDIcon, TouTiaoIcon } from '../components/SiteIcons';
@@ -106,6 +107,14 @@ const engines = [
 		embeddable: false,
 		icon: <SiMdnwebdocs />,
 		color: '#000000',
+	},
+	{
+		title: 'Amazon',
+		url: 'https://www.amazon.com/s?k=%s',
+		slug: 'amazon',
+		embeddable: true,
+		icon: <RiAmazonFill />,
+		color: '#FF9900',
 	},
 	{
 		title: '淘宝',
