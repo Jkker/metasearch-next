@@ -12,26 +12,41 @@ function lightness(hex) {
 	return l;
 }
 
-export default function Icon({ svg, children, color = '0xffffff', style, ...props }) {
+export default function Icon({ children, color = '#ffffff', style, ...props }) {
 	const { theme } = useTheme();
-	if (!svg && !children)
-	return null;
+	if (!children) return null;
 	const dark = theme === 'dark';
 	const l = lightness(color);
 	const newColor = l < 0.2 && dark ? '#fff' : color;
-	return (
-		<ClientOnly>
-			<span
-				className={`h-4 w-4 text-white dark:text-white fill-white flex-center align-middle`}
-				style={{
-					fill: newColor,
-					color: newColor,
-					...style,
-				}}
-				{...props}
-			>
-				{svg || children}
-			</span>
-		</ClientOnly>
-	);
+	if (typeof children === 'string')
+		return (
+			<ClientOnly>
+				<span
+					className={`h-4 w-4 text-white dark:text-white fill-white flex-center align-middle`}
+					style={{
+						fill: newColor,
+						color: newColor,
+						...style,
+					}}
+					dangerouslySetInnerHTML={{ __html: children }}
+					{...props}
+				/>
+			</ClientOnly>
+		);
+	else
+		return (
+			<ClientOnly>
+				<span
+					className={`h-4 w-4 text-white dark:text-white fill-white flex-center align-middle`}
+					style={{
+						fill: newColor,
+						color: newColor,
+						...style,
+					}}
+					{...props}
+				>
+					{children}
+				</span>
+			</ClientOnly>
+		);
 }

@@ -6,7 +6,42 @@ import { DebounceInput } from 'react-debounce-input';
 import { FiSearch } from 'react-icons/fi';
 import { TiDelete } from 'react-icons/ti';
 import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
-import engines from '../data/engine';
+const { renderToString } = require('react-dom/server');
+const { parseXml } = require('libxmljs');
+const fs = require('fs').promises;
+
+const isValidXml = (xml) => {
+	try {
+		parseXml(xml);
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+const cwd = process.cwd();
+
+export const getStaticProps = async () => {
+	const engines = await JSON.parse(await fs.readFile(`${cwd}/data/engine.json`, 'utf8'));
+	const reactIcons = await import('../node_modules/react-icons/all.js');
+	const localIcons = await import('../components/SiteIcons.jsx');
+	return {
+		props: {
+			engines: engines.map(({ icon = 'IoGlobeOutline', ...engine }) => {
+				if (isValidXml(icon))
+					return {
+						...engine,
+						icon,
+					};
+
+				const iconElement = reactIcons[icon] || localIcons[icon] || reactIcons['IoGlobeOutline'];
+				return {
+					...engine,
+					icon: renderToString(iconElement()),
+				};
+			}),
+		},
+	};
+};
 
 const iFrameProps = {
 	width: '100%',
@@ -37,7 +72,7 @@ const SiteStates = {
 };
 const { INIT, LOADING, READY } = SiteStates;
 
-export default function Search() {
+export default function Search({ engines }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);

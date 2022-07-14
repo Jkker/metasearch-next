@@ -1,0 +1,127 @@
+[
+	{
+		"title": "Google",
+		"url": "https://www.google.com/search?igu=1&pws=0&gl=us&gws_rd=cr&source=hp&newwindow=1&q=%s&oq=%s",
+		"slug": "google",
+		"embeddable": true,
+		"icon": "RiGoogleFill",
+		"color": "#4285F4",
+		"preload": true
+	},
+	{
+		"title": "百度",
+		"url": "https://www.baidu.com/s?ie=utf-8&word=%s",
+		"slug": "baidu",
+		"embeddable": true,
+		"icon": "RiBaiduFill",
+		"color": "#2b32d8",
+		"preload": true
+	},
+	{
+		"title": "有道",
+		"url": "https://dict.youdao.com/result?word=%s&lang=en",
+		"slug": "youdao",
+		"embeddable": true,
+		"icon": "LoYouDao",
+		"color": "#E31436"
+	},
+	{
+		"title": "bilibili",
+		"url": "https://search.bilibili.com/all?keyword=%s",
+		"slug": "bilibili",
+		"embeddable": true,
+		"icon": "SiBilibili",
+		"color": "#00A1D6"
+	},
+	{
+		"title": "知乎",
+		"url": "https://www.zhihu.com/search?type=content&q=%s",
+		"slug": "zhihu",
+		"embeddable": false,
+		"icon": "RiZhihuLine",
+		"color": "#0084FF"
+	},
+	{
+		"title": "YouTube",
+		"url": "https://www.youtube.com/results?search_query=%s",
+		"slug": "youtube",
+		"embeddable": false,
+		"icon": "RiYoutubeFill",
+		"color": "#ea3322"
+	},
+	{
+		"title": "Reddit",
+		"url": "https://www.google.com/search?q=%s+site%3Areddit.com",
+		"slug": "reddit",
+		"embeddable": false,
+		"icon": "SiReddit",
+		"color": "#eb5527",
+		"preload": true
+	},
+	{
+		"title": "微博",
+		"url": "https://s.weibo.com/weibo/%s?topnav=1&wvr=6",
+		"slug": "sinaweibo",
+		"embeddable": true,
+		"icon": "RiWeiboFill",
+		"color": "#d33436"
+	},
+	{
+		"title": "今日头条",
+		"url": "https://so.toutiao.com/search?keyword=%s",
+		"slug": "toutiao",
+		"embeddable": true,
+		"icon": "LoTouTiao",
+		"color": "#dd5049"
+	},
+	{
+		"title": "Github",
+		"url": "https://github.com/search?q=%s",
+		"slug": "github",
+		"embeddable": false,
+		"icon": "RiGithubFill",
+		"color": "#181717"
+	},
+
+	{
+		"title": "MDN",
+		"url": "https://developer.mozilla.org/en-US/search?q=%s",
+		"slug": "mdnwebdocs",
+		"embeddable": false,
+		"icon": "SiMdnwebdocs",
+		"color": "#000000"
+	},
+	{
+		"title": "Amazon",
+		"url": "https://www.amazon.com/s?k=%s",
+		"slug": "amazon",
+		"embeddable": true,
+		"icon": "RiAmazonFill",
+		"color": "#FF9900"
+	},
+	{
+		"title": "淘宝",
+		"url": "https://s.taobao.com/search?q=%s",
+		"slug": "taobao",
+		"embeddable": true,
+		"icon": "RiTaobaoFill",
+		"color": "#E94F20"
+	},
+	{
+		"title": "京东",
+		"url": "https://sou.m.jd.com/bases/m/searchKeyword.htm?keyword=%s",
+		"slug": "jing-dong",
+		"embeddable": true,
+		"icon": "LoJD",
+		"color": "#E1251B",
+		"desktop": false
+	},
+	{
+		"title": "微信",
+		"url": "https://weixin.sogou.com/weixin?p=01030402&query=%s&type=2&ie=utf8",
+		"slug": "wechat",
+		"embeddable": true,
+		"icon": "RiWechatFill",
+		"color": "#07C160"
+	}
+]

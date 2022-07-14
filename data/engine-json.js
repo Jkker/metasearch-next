@@ -1,17 +1,3 @@
-import {
-	RiAmazonFill,
-	RiBaiduFill,
-	RiGithubFill,
-	RiGoogleFill,
-	RiTaobaoFill,
-	RiWechatFill,
-	RiWeiboFill,
-	RiYoutubeFill,
-	RiZhihuLine,
-} from 'react-icons/ri';
-import { SiBilibili, SiMdnwebdocs, SiReddit } from 'react-icons/si';
-import { LoJD, LoTouTiao, LoYouDao } from '../components/';
-
 const engines = [
 	{
 		title: 'Google',
@@ -21,7 +7,7 @@ const engines = [
 		locale: null,
 		slug: 'google',
 		embeddable: true,
-		icon: <RiGoogleFill />,
+		icon: 'RiGoogleFill',
 		color: '#4285F4',
 		preload: true,
 	},
@@ -30,7 +16,7 @@ const engines = [
 		url: 'https://www.baidu.com/s?ie=utf-8&word=%s',
 		slug: 'baidu',
 		embeddable: true,
-		icon: <RiBaiduFill />,
+		icon: 'RiBaiduFill',
 		color: '#2b32d8',
 		preload: true,
 	},
@@ -39,7 +25,7 @@ const engines = [
 		url: 'https://dict.youdao.com/result?word=%s&lang=en',
 		slug: 'youdao',
 		embeddable: true,
-		icon: <LoYouDao />,
+		icon: 'LoYouDao',
 		color: '#E31436',
 	},
 	{
@@ -47,7 +33,7 @@ const engines = [
 		url: 'https://search.bilibili.com/all?keyword=%s',
 		slug: 'bilibili',
 		embeddable: true,
-		icon: <SiBilibili />,
+		icon: 'SiBilibili',
 		color: '#00A1D6',
 	},
 	{
@@ -55,7 +41,7 @@ const engines = [
 		url: 'https://www.zhihu.com/search?type=content&q=%s',
 		slug: 'zhihu',
 		embeddable: false,
-		icon: <RiZhihuLine />,
+		icon: 'RiZhihuLine',
 		color: '#0084FF',
 	},
 	{
@@ -63,7 +49,7 @@ const engines = [
 		url: 'https://www.youtube.com/results?search_query=%s',
 		slug: 'youtube',
 		embeddable: false,
-		icon: <RiYoutubeFill />,
+		icon: 'RiYoutubeFill',
 		color: '#ea3322',
 	},
 	{
@@ -71,7 +57,7 @@ const engines = [
 		url: 'https://www.google.com/search?q=%s+site%3Areddit.com',
 		slug: 'reddit',
 		embeddable: false,
-		icon: <SiReddit />,
+		icon: 'SiReddit',
 		color: '#eb5527',
 		preload: true,
 	},
@@ -80,7 +66,7 @@ const engines = [
 		url: 'https://s.weibo.com/weibo/%s?topnav=1&wvr=6',
 		slug: 'sinaweibo',
 		embeddable: true,
-		icon: <RiWeiboFill />,
+		icon: 'RiWeiboFill',
 		color: '#d33436',
 	},
 	{
@@ -88,7 +74,7 @@ const engines = [
 		url: 'https://so.toutiao.com/search?keyword=%s',
 		slug: 'toutiao',
 		embeddable: true,
-		icon: <LoTouTiao />,
+		icon: 'LoTouTiao',
 		color: '#dd5049',
 	},
 	{
@@ -96,7 +82,7 @@ const engines = [
 		url: 'https://github.com/search?q=%s',
 		slug: 'github',
 		embeddable: false,
-		icon: <RiGithubFill />,
+		icon: 'RiGithubFill',
 		color: '#181717',
 	},
 
@@ -105,7 +91,7 @@ const engines = [
 		url: 'https://developer.mozilla.org/en-US/search?q=%s',
 		slug: 'mdnwebdocs',
 		embeddable: false,
-		icon: <SiMdnwebdocs />,
+		icon: 'SiMdnwebdocs',
 		color: '#000000',
 	},
 	{
@@ -113,7 +99,7 @@ const engines = [
 		url: 'https://www.amazon.com/s?k=%s',
 		slug: 'amazon',
 		embeddable: true,
-		icon: <RiAmazonFill />,
+		icon: 'RiAmazonFill',
 		color: '#FF9900',
 	},
 	{
@@ -121,7 +107,7 @@ const engines = [
 		url: 'https://s.taobao.com/search?q=%s',
 		slug: 'taobao',
 		embeddable: true,
-		icon: <RiTaobaoFill />,
+		icon: 'RiTaobaoFill',
 		color: '#E94F20',
 	},
 	// {
@@ -129,7 +115,7 @@ const engines = [
 	// 	url: 'https://search.jd.com/search?keyword=%s',
 	// 	slug: 'jing-dong',
 	// 	embeddable: true,
-	// 	icon: <LoJD />,
+	// 	icon: 'JDIcon',
 	// 	color: '#E1251B',
 	// 	mobile: false,
 	// },
@@ -138,7 +124,7 @@ const engines = [
 		url: 'https://sou.m.jd.com/bases/m/searchKeyword.htm?keyword=%s',
 		slug: 'jing-dong',
 		embeddable: true,
-		icon: <LoJD />,
+		icon: 'LoJD',
 		color: '#E1251B',
 		desktop: false,
 	},
@@ -147,9 +133,9 @@ const engines = [
 		url: 'https://weixin.sogou.com/weixin?p=01030402&query=%s&type=2&ie=utf8',
 		slug: 'wechat',
 		embeddable: true,
-		icon: <RiWechatFill />,
+		icon: 'RiWechatFill',
 		color: '#07C160',
 	},
 ];
-
+export { engines };
 export default engines;
