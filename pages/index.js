@@ -10,24 +10,56 @@ import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
 const { renderToString } = require('react-dom/server');
 
-const isValidXml = (xml) => xml.includes('</svg>');
+const isValidSvg = (str) => str.includes('</svg>');
+
+const pkgs = [
+	'ai',
+	'bs',
+	'di',
+	'fc',
+	'gi',
+	'gr',
+	'im',
+	'si',
+	'ti',
+	'wi',
+	'bi',
+	'cg',
+	'fa',
+	'fi',
+	'go',
+	'hi',
+	'io5',
+	'md',
+	'ri',
+	'tb',
+	'vsc',
+];
 
 export const getStaticProps = async () => {
 	await dbConnect();
 	const engines = await Engine.find({});
 
-	const reactIcons = await import('../node_modules/react-icons/all.js');
+	const icons = {};
+
+	// Import react-icons
+	for (const pkg of pkgs) {
+		const Icon = await import(`../node_modules/react-icons/${pkg}/index.js`);
+		Object.assign(icons, Icon);
+	}
+
 	const localIcons = await import('../components/SiteIcons.jsx');
+	Object.assign(icons, localIcons);
 	return {
 		props: {
 			engines: JSON.parse(JSON.stringify(engines)).map(({ icon = 'IoGlobeOutline', ...engine }) => {
-				if (isValidXml(icon))
+				if (isValidSvg(icon))
 					return {
 						...engine,
 						icon,
 					};
 
-				const iconElement = reactIcons[icon] || localIcons[icon] || reactIcons['IoGlobeOutline'];
+				const iconElement = icons[icon] || icons['IoGlobeOutline'];
 				return {
 					...engine,
 					icon: renderToString(iconElement()),
