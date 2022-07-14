@@ -17,6 +17,17 @@ const iFrameProps = {
 	sandbox:
 		'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
 };
+
+const tabButtonStyles = cx(
+	'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px]',
+	'transition-all duration-200 ease-in-out',
+	'bg-white dark:bg-gray-800',
+	'hover:shadow-lg hover:brightness-95 dark:hover:brightness-125',
+	'active:brightness-90 dark:active:brightness-125',
+	'focus:outline-none focus-visible:brightness-90 dark:focus-visible:brightness-110',
+	'border-b-[2px]'
+);
+
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
 
 const SiteStates = {
@@ -32,9 +43,9 @@ export default function Search() {
 	const inputRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [initialLoad, setInitialLoad] = useState(false);
-	const [dark, setIsDarkMode] = useState(false);
+	const [query, setQuery] = useState('');
 
-	const data = engines.map(({ title, ...item }, index) => ({
+	const data = engines.map(({ title, ...item }) => ({
 		title,
 		display: cx(
 			item.mobile === false && 'hidden sm:flex',
@@ -46,23 +57,19 @@ export default function Search() {
 
 	const [tabState, setTabState] = useState(data.map(({ state }) => state));
 
-	const [query, setQuery] = useState('');
-
 	const onSearch = async (value) => {
 		setQuery(value);
-		console.log(value);
 		router.push({ pathname: router.pathname, query: { q: value } }, undefined, {
 			shallow: true,
 		});
 		if (value.length > 0) {
-			document.getElementById(`frame-${selectedIndex}`)?.focus?.();
+			inputRef.current.blur();
 		}
 	};
 
 	const onEngineChange = (index) => {
 		setSelectedIndex(index);
 		setTabState((prev) => {
-			console.log('🌟', index, prev[index] === INIT ? LOADING : prev[index]);
 			return {
 				...prev,
 				[index]: prev[index] === INIT ? LOADING : prev[index],
@@ -73,54 +80,49 @@ export default function Search() {
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
-		if (q) {
-			setQuery(q);
-		}
-		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
-
+		if (q) setQuery(q);
 		if (!q) inputRef.current.focus();
 	}, []);
 
 	return (
-		<div className='flex flex-col h-screen max-h-screen'>
-			<div className='flex input-bar relative h-9 min-h-9'>
-				<DebounceInput
-					minLength={1}
-					inputRef={inputRef}
-					debounceTimeout={800}
-					value={query}
-					onChange={(event) => onSearch(event.target.value)}
-					className={cx('w-full h-9 p-2 pl-9 bg-white dark:bg-gray-700')}
-					id='search-input'
-				/>
-				<button
-					className='absolute top-0 left-0 h-9 w-9 flex-center'
-					onClick={(e) => {
-						if (query) {
-							document.getElementById(`frame-${selectedIndex}`).src += '';
-						}
-					}}
-				>
-					<FiSearch />
-				</button>
-				<Fade show={query.length > 0}>
-					<button
-						className={cx('absolute top-0 right-9 h-9 w-9 flex-center opacity-50')}
-						onClick={() => onSearch('')}
-					>
-						<TiDelete />
-					</button>
-				</Fade>
-
-				<Menu>
-					<ThemeSwitch />
-				</Menu>
-			</div>
-
+		<main className='flex flex-col h-screen max-h-screen'>
 			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
-				<div className='tab-list flex w-full justify-between bg-gray-100 dark:bg-gray-800'>
+				<header>
+					<nav className='input-bar flex'>
+						<DebounceInput
+							minLength={1}
+							inputRef={inputRef}
+							debounceTimeout={800}
+							value={query}
+							onChange={(event) => onSearch(event.target.value)}
+							className='w-full h-9 p-2 pl-9 bg-white dark:bg-gray-700'
+							id='search-input'
+						/>
+						<button
+							className='absolute top-0 left-0 h-9 w-9 flex-center'
+							onClick={(e) => {
+								if (query) {
+									document.getElementById(`frame-${selectedIndex}`).src += '';
+								}
+							}}
+						>
+							<FiSearch />
+						</button>
+						<Fade show={query.length > 0}>
+							<button
+								className='absolute top-0 right-9 h-9 w-9 flex-center opacity-50'
+								onClick={() => onSearch('')}
+							>
+								<TiDelete />
+							</button>
+						</Fade>
+
+						<Menu>
+							<ThemeSwitch />
+						</Menu>
+					</nav>
 					<Tab.List
-						className='flex drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
+						className='flex w-full justify-start bg-gray-100 dark:bg-gray-800 drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
 						ref={TabListRef}
 						onWheel={(e) => {
 							if (e.deltaY == 0) return;
@@ -129,22 +131,13 @@ export default function Search() {
 								behavior: 'smooth',
 							});
 						}}
+						as='nav'
 					>
-						{data.map(({ icon, color, title, body, display, preload, ...item }, index) => (
+						{data.map(({ icon, color, title, display }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<button
-										className={cx(
-											'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px]',
-											'transition-all duration-200 ease-in-out',
-											'bg-white dark:bg-gray-800',
-											'hover:shadow-lg hover:brightness-95 dark:hover:brightness-125',
-											'active:brightness-90 dark:active:brightness-125',
-											'focus:outline-none focus-visible:brightness-90 dark:focus-visible:brightness-110',
-											'border-b-[2px] ',
-											selected && 'text-white shadow-inner',
-											display
-										)}
+										className={cx(tabButtonStyles, selected && 'text-white shadow-inner', display)}
 										style={{
 											borderColor: color,
 											backgroundColor: selected ? color : undefined,
@@ -161,8 +154,7 @@ export default function Search() {
 												<Fade show={tabState[index] === LOADING && query}>
 													<LoadingIcon
 														className={cx(
-															selected ? 'text-white' : 'text-gray-500 dark:text-white',
-															''
+															selected ? 'text-white' : 'text-gray-500 dark:text-white'
 														)}
 													/>
 												</Fade>
@@ -175,7 +167,7 @@ export default function Search() {
 							</Tab>
 						))}
 					</Tab.List>
-				</div>
+				</header>
 				<Tab.Panels className='tab-panes flex h-full'>
 					<Tab.Panel
 						className={cx('max-w-screen overflow-auto w-full', data[0].display)}
@@ -192,72 +184,44 @@ export default function Search() {
 								title={data[0].title}
 								src={processUrl(data[0].url, query)}
 								key={data[0].title}
-								onLoad={(e) => {
+								onLoad={() => {
 									setInitialLoad(true);
 									setTabState((prev) => ({ ...prev, 0: true }));
 								}}
 							/>
 						)}
 					</Tab.Panel>
-					{data
-						.slice(1, data.length)
-						.map(({ preload, icon, title, url, body, display, ...item }, idx) => {
-							const index = idx + 1;
-							const isSelected = selectedIndex === index;
-							return (
-								<Tab.Panel
-									className={cx('max-w-screen overflow-auto w-full', display)}
-									key={index}
-									style={{
-										display: isSelected ? 'block' : 'none',
-									}}
-									static
-								>
-									{query && initialLoad && (isSelected || preload) && (
-										<iframe
-											id={`frame-${index}`}
-											title={title}
-											loading={preload ? 'eager' : 'lazy'}
-											src={processUrl(url, query)}
-											key={title}
-											{...iFrameProps}
-											onLoad={(e) => {
-												console.log('🌟', title, 'Loaded');
-												setTabState((prev) => ({ ...prev, [index]: READY }));
-											}}
-										/>
-									)}
-								</Tab.Panel>
-							);
-						})}
+					{data.slice(1, data.length).map(({ preload, title, url, display }, prevIndex) => {
+						const index = prevIndex + 1;
+						const isSelected = selectedIndex === index;
+						return (
+							<Tab.Panel
+								className={cx('max-w-screen overflow-auto w-full', display)}
+								key={index}
+								style={{
+									display: isSelected ? 'block' : 'none',
+								}}
+								static
+							>
+								{query && initialLoad && (isSelected || preload) && (
+									<iframe
+										id={`frame-${index}`}
+										title={title}
+										loading={preload ? 'eager' : 'lazy'}
+										src={processUrl(url, query)}
+										key={title}
+										{...iFrameProps}
+										onLoad={() => {
+											console.log('🌟', title, 'Loaded');
+											setTabState((prev) => ({ ...prev, [index]: READY }));
+										}}
+									/>
+								)}
+							</Tab.Panel>
+						);
+					})}
 				</Tab.Panels>
 			</Tab.Group>
-		</div>
-	);
-}
-
-function Panel({ icon, title, url, body, display, index, show, ...item }) {
-	return (
-		<Tab.Panel
-			className={cx('max-w-screen overflow-auto w-full', display)}
-			key={index + 1}
-			style={{
-				display: show ? 'block' : 'none',
-				// visibility: selectedIndex === index + 1 ? 'visible' : 'hidden',
-			}}
-			static
-		>
-			{query && initialLoad && (
-				<iframe
-					title={title}
-					src={processUrl(url, query)}
-					key={title}
-					{...iFrameProps}
-					onLoad={(e) => {
-						console.log('🌟', title, 'Loaded');
-					}}
-				/>
-			)}
-		</Tab.Panel>
+		</main>
 	);
 }
