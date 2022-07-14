@@ -6,27 +6,21 @@ import { DebounceInput } from 'react-debounce-input';
 import { FiSearch } from 'react-icons/fi';
 import { TiDelete } from 'react-icons/ti';
 import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
+import dbConnect from '../lib/dbConnect';
+import Engine from '../models/Engine';
 const { renderToString } = require('react-dom/server');
-const { parseXml } = require('libxmljs');
-const fs = require('fs').promises;
 
-const isValidXml = (xml) => {
-	try {
-		parseXml(xml);
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-const cwd = process.cwd();
+const isValidXml = (xml) => xml.includes('</svg>');
 
 export const getStaticProps = async () => {
-	const engines = await JSON.parse(await fs.readFile(`${cwd}/data/engine.json`, 'utf8'));
+	await dbConnect();
+	const engines = await Engine.find({});
+
 	const reactIcons = await import('../node_modules/react-icons/all.js');
 	const localIcons = await import('../components/SiteIcons.jsx');
 	return {
 		props: {
-			engines: engines.map(({ icon = 'IoGlobeOutline', ...engine }) => {
+			engines: JSON.parse(JSON.stringify(engines)).map(({ icon = 'IoGlobeOutline', ...engine }) => {
 				if (isValidXml(icon))
 					return {
 						...engine,
@@ -40,6 +34,7 @@ export const getStaticProps = async () => {
 				};
 			}),
 		},
+		revalidate: 60,
 	};
 };
 
@@ -80,8 +75,8 @@ export default function Search({ engines }) {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [query, setQuery] = useState('');
 
-	const data = engines.map(({ title, ...item }) => ({
-		title,
+	const data = engines.map(({ name, ...item }) => ({
+		name,
 		display: cx(
 			item.mobile === false && 'hidden sm:flex',
 			item.desktop === false && 'flex sm:hidden'
@@ -172,7 +167,7 @@ export default function Search({ engines }) {
 						}}
 						as='nav'
 					>
-						{data.map(({ icon, color, title, display }, index) => (
+						{data.map(({ icon, color, name, display }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<button
@@ -187,7 +182,7 @@ export default function Search({ engines }) {
 												document.getElementById(`frame-${index}`).src += '';
 											}
 										}}
-										title={'Search ' + title}
+										title={'Search ' + name}
 									>
 										<>
 											<span className='absolute t-0 r-0'>
@@ -201,7 +196,7 @@ export default function Search({ engines }) {
 											</span>
 											<Icon color={selected ? '#ffffff' : color}>{icon}</Icon>
 										</>
-										<span className='hidden sm:inline sm:ml-2'>{title}</span>
+										<span className='hidden sm:inline sm:ml-2'>{name}</span>
 									</button>
 								)}
 							</Tab>
@@ -221,9 +216,9 @@ export default function Search({ engines }) {
 							<iframe
 								{...iFrameProps}
 								id='frame-0'
-								title={data[0].title}
+								title={data[0].name}
 								src={processUrl(data[0].url, query)}
-								key={data[0].title}
+								key={data[0].name}
 								onLoad={() => {
 									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: true }));
@@ -231,7 +226,7 @@ export default function Search({ engines }) {
 							/>
 						)}
 					</Tab.Panel>
-					{data.slice(1, data.length).map(({ preload, title, url, display }, prevIndex) => {
+					{data.slice(1, data.length).map(({ preload, name, url, display }, prevIndex) => {
 						const index = prevIndex + 1;
 						const isSelected = selectedIndex === index;
 						return (
@@ -247,8 +242,8 @@ export default function Search({ engines }) {
 									<iframe
 										{...iFrameProps}
 										id={`frame-${index}`}
-										title={title}
-										key={title}
+										title={name}
+										key={name}
 										loading={preload ? 'eager' : 'lazy'}
 										src={processUrl(url, query)}
 										onLoad={() => {
