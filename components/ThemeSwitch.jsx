@@ -1,7 +1,7 @@
+import { Switch } from '@headlessui/react';
 import cx from 'classnames';
 import { useTheme } from 'next-themes';
 import { ClientOnly } from '.';
-import { Switch } from '@headlessui/react';
 
 const ThemeIcon = ({ isDark, className = 'h-6 w-6' }) => (
 	<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' className={className}>
@@ -21,7 +21,7 @@ const ThemeIcon = ({ isDark, className = 'h-6 w-6' }) => (
 );
 
 export default function ThemeSwitch() {
-	const { theme, setTheme } = { theme: 'dark', setTheme: () => {} };
+	const { theme, setTheme } = useTheme();
 	const isDark = theme === 'dark';
 	const toggleTheme = () => setTheme(isDark ? 'system' : 'dark');
 	return (
@@ -51,6 +51,7 @@ export default function ThemeSwitch() {
 					'transition-all duration-200 ease-in-out',
 					'gap-3'
 				)}
+				title='Toggle theme'
 			>
 				<ThemeIcon isDark={isDark} />
 			</button>

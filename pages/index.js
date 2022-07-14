@@ -31,9 +31,9 @@ const tabButtonStyles = cx(
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
 
 const SiteStates = {
-	INIT: 'Init',
-	LOADING: 'Loading',
-	READY: 'Loaded',
+	INIT: 0,
+	LOADING: 1,
+	READY: 2,
 };
 const { INIT, LOADING, READY } = SiteStates;
 
@@ -41,8 +41,8 @@ export default function Search() {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
+	const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(0);
-	const [initialLoad, setInitialLoad] = useState(false);
 	const [query, setQuery] = useState('');
 
 	const data = engines.map(({ title, ...item }) => ({
@@ -78,6 +78,7 @@ export default function Search() {
 	};
 
 	useEffect(() => {
+		// Get search query from url
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
 		if (q) setQuery(q);
@@ -85,7 +86,7 @@ export default function Search() {
 	}, []);
 
 	return (
-		<main className='flex flex-col h-screen max-h-screen'>
+		<main className='flex flex-col h-screen'>
 			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
 				<header>
 					<nav className='input-bar flex'>
@@ -105,6 +106,7 @@ export default function Search() {
 									document.getElementById(`frame-${selectedIndex}`).src += '';
 								}
 							}}
+							title='Search'
 						>
 							<FiSearch />
 						</button>
@@ -112,6 +114,7 @@ export default function Search() {
 							<button
 								className='absolute top-0 right-9 h-9 w-9 flex-center opacity-50'
 								onClick={() => onSearch('')}
+								title='Clear search'
 							>
 								<TiDelete />
 							</button>
@@ -125,6 +128,7 @@ export default function Search() {
 						className='flex w-full justify-start bg-gray-100 dark:bg-gray-800 drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
 						ref={TabListRef}
 						onWheel={(e) => {
+							// Convert vertical scroll to horizontal scroll
 							if (e.deltaY == 0) return;
 							TabListRef.current.scrollTo({
 								left: TabListRef.current.scrollLeft + e.deltaY,
@@ -143,11 +147,12 @@ export default function Search() {
 											backgroundColor: selected ? color : undefined,
 										}}
 										onMouseDown={(e) => {
+											// Reload the page if the user clicks the same engine twice
 											if (selectedIndex === index && query) {
 												document.getElementById(`frame-${index}`).src += '';
-												console.log('🍉 refresh', title);
 											}
 										}}
+										title={'Search ' + title}
 									>
 										<>
 											<span className='absolute t-0 r-0'>
@@ -168,9 +173,9 @@ export default function Search() {
 						))}
 					</Tab.List>
 				</header>
-				<Tab.Panels className='tab-panes flex h-full'>
+				<Tab.Panels className='flex tab-panes h-full'>
 					<Tab.Panel
-						className={cx('max-w-screen overflow-auto w-full', data[0].display)}
+						className={cx('w-full', data[0].display)}
 						key={0}
 						static
 						style={{
@@ -185,7 +190,7 @@ export default function Search() {
 								src={processUrl(data[0].url, query)}
 								key={data[0].title}
 								onLoad={() => {
-									setInitialLoad(true);
+									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: true }));
 								}}
 							/>
@@ -196,23 +201,22 @@ export default function Search() {
 						const isSelected = selectedIndex === index;
 						return (
 							<Tab.Panel
-								className={cx('max-w-screen overflow-auto w-full', display)}
+								className={cx('w-full', display)}
 								key={index}
 								style={{
 									display: isSelected ? 'block' : 'none',
 								}}
 								static
 							>
-								{query && initialLoad && (isSelected || preload) && (
+								{query && firstFrameLoaded && (isSelected || preload) && (
 									<iframe
+										{...iFrameProps}
 										id={`frame-${index}`}
 										title={title}
+										key={title}
 										loading={preload ? 'eager' : 'lazy'}
 										src={processUrl(url, query)}
-										key={title}
-										{...iFrameProps}
 										onLoad={() => {
-											console.log('🌟', title, 'Loaded');
 											setTabState((prev) => ({ ...prev, [index]: READY }));
 										}}
 									/>

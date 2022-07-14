@@ -1,10 +1,7 @@
 import { Menu, Transition } from '@headlessui/react';
 import cx from 'classnames';
-import { Fragment, cloneElement } from 'react';
-import { Cross as Hamburger } from 'hamburger-react';
-import { RiMenuLine, RiCloseLine } from 'react-icons/ri';
-import { FiX } from 'react-icons/fi';
-import { MorphReplace } from 'react-svg-morph';
+import { cloneElement, Fragment } from 'react';
+import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
 
 export default function CustomMenu({ children = [], ...props }) {
 	return (

@@ -13,7 +13,7 @@ function lightness(hex) {
 }
 
 export default function Icon({ svg, children, color = '0xffffff', style, ...props }) {
-	const { theme, setTheme } = useTheme();
+	const { theme } = useTheme();
 	if (!svg && !children)
 	return null;
 	const dark = theme === 'dark';
@@ -31,7 +31,6 @@ export default function Icon({ svg, children, color = '0xffffff', style, ...prop
 				{...props}
 			>
 				{svg || children}
-				{/* {l} */}
 			</span>
 		</ClientOnly>
 	);
