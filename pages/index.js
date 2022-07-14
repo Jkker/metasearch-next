@@ -3,9 +3,9 @@ import cx from 'classnames';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
-import { FiSearch, FiX } from 'react-icons/fi';
-import Icon from '../components/Icon';
-import LoadingIcon from '../components/LoadingIcon';
+import { FiSearch } from 'react-icons/fi';
+import { TiDelete } from 'react-icons/ti';
+import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
 import engines from '../data/engine';
 
 const iFrameProps = {
@@ -29,6 +29,7 @@ const { INIT, LOADING, READY } = SiteStates;
 export default function Search() {
 	const router = useRouter();
 	const TabListRef = useRef(null);
+	const inputRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [initialLoad, setInitialLoad] = useState(false);
 	const [dark, setIsDarkMode] = useState(false);
@@ -53,6 +54,9 @@ export default function Search() {
 		router.push({ pathname: router.pathname, query: { q: value } }, undefined, {
 			shallow: true,
 		});
+		if (value.length > 0) {
+			document.getElementById(`frame-${selectedIndex}`)?.focus?.();
+		}
 	};
 
 	const onEngineChange = (index) => {
@@ -74,22 +78,23 @@ export default function Search() {
 		}
 		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-		if (!q) document.getElementById('search-input').focus();
+		if (!q) inputRef.current.focus();
 	}, []);
 
 	return (
-		<div className='flex flex-col h-screen'>
-			<div className='input-bar relative'>
+		<div className='flex flex-col h-screen max-h-screen'>
+			<div className='flex input-bar relative h-9 min-h-9'>
 				<DebounceInput
 					minLength={1}
+					inputRef={inputRef}
 					debounceTimeout={800}
 					value={query}
 					onChange={(event) => onSearch(event.target.value)}
-					className={cx('w-full h-10 p-2 pl-9 ')}
+					className={cx('w-full h-9 p-2 pl-9 bg-white dark:bg-gray-700')}
 					id='search-input'
 				/>
 				<button
-					className='absolute top-0 left-0 h-10 w-9 flex-center'
+					className='absolute top-0 left-0 h-9 w-9 flex-center'
 					onClick={(e) => {
 						if (query) {
 							document.getElementById(`frame-${selectedIndex}`).src += '';
@@ -98,13 +103,20 @@ export default function Search() {
 				>
 					<FiSearch />
 				</button>
-				<button
-					className='absolute top-0 right-0 h-10 w-9 flex-center'
-					onClick={() => setQuery('')}
-				>
-					<FiX />
-				</button>
+				<Fade show={query.length > 0}>
+					<button
+						className={cx('absolute top-0 right-9 h-9 w-9 flex-center opacity-50')}
+						onClick={() => onSearch('')}
+					>
+						<TiDelete />
+					</button>
+				</Fade>
+
+				<Menu>
+					<ThemeSwitch />
+				</Menu>
 			</div>
+
 			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
 				<div className='tab-list flex w-full justify-between bg-gray-100 dark:bg-gray-800'>
 					<Tab.List
@@ -145,20 +157,17 @@ export default function Search() {
 										}}
 									>
 										<>
-											{tabState[index] === LOADING && query && (
-												<span className='absolute t-0 r-0'>
+											<span className='absolute t-0 r-0'>
+												<Fade show={tabState[index] === LOADING && query}>
 													<LoadingIcon
 														className={cx(
 															selected ? 'text-white' : 'text-gray-500 dark:text-white',
 															''
 														)}
 													/>
-												</span>
-											)}
-
-											<Icon dark={dark} color={selected ? '#ffffff' : color}>
-												{icon}
-											</Icon>
+												</Fade>
+											</span>
+											<Icon color={selected ? '#ffffff' : color}>{icon}</Icon>
 										</>
 										<span className='hidden sm:inline sm:ml-2'>{title}</span>
 									</button>
@@ -166,7 +175,6 @@ export default function Search() {
 							</Tab>
 						))}
 					</Tab.List>
-					{/* <Menu /> */}
 				</div>
 				<Tab.Panels className='tab-panes flex h-full'>
 					<Tab.Panel

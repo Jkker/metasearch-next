@@ -14,6 +14,39 @@
 	}
 }
 
+@layer components {
+	.nc-int-icon-rotate {
+		--animation-duration: 0.3s;
+	}
+
+	.nc-int-icon-b {
+		position: absolute;
+		top: calc(50% - 0.5em);
+		left: calc(50% - 0.5em);
+		opacity: 0;
+	}
+	.nc-int-icon-rotate .nc-int-icon-a,
+	.nc-int-icon-rotate .nc-int-icon-b {
+		transition: opacity 0s calc(var(--animation-duration) / 2), transform var(--animation-duration);
+		transform-origin: center center;
+	}
+	.nc-int-icon-rotate .nc-int-icon-b {
+		transform: rotate(90deg) scale(0.6);
+	}
+	.nc-int-icon-state-b .nc-int-icon-a {
+		opacity: 0;
+	}
+	.nc-int-icon-state-b .nc-int-icon-b {
+		opacity: 1;
+	}
+	.nc-int-icon-rotate.nc-int-icon-state-b .nc-int-icon-a {
+		transform: rotate(-90deg) scale(0.6);
+	}
+	.nc-int-icon-rotate.nc-int-icon-state-b .nc-int-icon-b {
+		transform: rotate(0);
+	}
+}
+
 @layer utilities {
 	.scrollbar-hide {
 		&::-webkit-scrollbar {
@@ -22,9 +55,9 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
-  .flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+	.flex-center {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 }

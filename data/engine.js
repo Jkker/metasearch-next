@@ -10,7 +10,7 @@ import {
 	RiZhihuLine,
 } from 'react-icons/ri';
 import { SiBilibili, SiMdnwebdocs, SiReddit } from 'react-icons/si';
-import { JDIcon, TouTiaoIcon, YouDaoIcon } from '../components/SiteIcons';
+import { JDIcon, TouTiaoIcon, YouDaoIcon } from '../components/';
 
 const engines = [
 	{
