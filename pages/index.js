@@ -171,7 +171,7 @@ export default function Search({ engines }) {
 						<DebounceInput
 							minLength={1}
 							inputRef={inputRef}
-							debounceTimeout={800}
+							debounceTimeout={1500}
 							value={query}
 							onChange={(event) => onSearch(event.target.value)}
 							className='w-full h-9 p-2 pl-9 bg-transparent'
