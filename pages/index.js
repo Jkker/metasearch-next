@@ -3,11 +3,13 @@ import cx from 'classnames';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
+import { isMobile } from 'react-device-detect';
 import { FiSearch } from 'react-icons/fi';
 import { TiDelete } from 'react-icons/ti';
 import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
+
 const { renderToString } = require('react-dom/server');
 
 const isValidSvg = (str) => str.includes('</svg>');
@@ -119,33 +121,23 @@ export default function Search({ engines }) {
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
 	const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
-	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [tabIndex, setTabIndex] = useState(0);
 	const [query, setQuery] = useState('');
-
-	const data = engines.map(({ name, ...item }) => ({
-		name,
-		display: cx(
-			item.mobile === false && 'hidden sm:flex',
-			item.desktop === false && 'flex sm:hidden'
-		),
-		state: item.preload ? LOADING : INIT,
-		...item,
-	}));
-
-	const [tabState, setTabState] = useState(data.map(({ state }) => state));
+	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
 
 	const onSearch = async (value) => {
 		setQuery(value);
 		router.push({ pathname: router.pathname, query: { q: value } }, undefined, {
 			shallow: true,
 		});
+		// window.location.replace(`${window.location.pathname}?q=${value}`);
 		if (value.length > 0) {
 			inputRef.current.blur();
 		}
 	};
 
 	const onEngineChange = (index) => {
-		setSelectedIndex(index);
+		setTabIndex(index);
 		setTabState((prev) => {
 			return {
 				...prev,
@@ -164,13 +156,13 @@ export default function Search({ engines }) {
 
 	return (
 		<main className='flex flex-col h-screen'>
-			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
+			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange}>
 				<header>
 					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
 						<DebounceInput
 							minLength={1}
 							inputRef={inputRef}
-							debounceTimeout={800}
+							debounceTimeout={isMobile ? 2000 : 800}
 							value={query}
 							onChange={(event) => onSearch(event.target.value)}
 							className='w-full h-9 p-2 pl-9 bg-transparent'
@@ -180,7 +172,7 @@ export default function Search({ engines }) {
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
 							onClick={(e) => {
 								if (query) {
-									document.getElementById(`frame-${selectedIndex}`).src += '';
+									document.getElementById(`frame-${tabIndex}`).src += '';
 								}
 							}}
 							title='Search'
@@ -214,7 +206,7 @@ export default function Search({ engines }) {
 						}}
 						as='nav'
 					>
-						{data.map(({ icon, color, name, display }, index) => (
+						{engines.map(({ icon, color, name, display }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<button
@@ -225,7 +217,7 @@ export default function Search({ engines }) {
 										}}
 										onMouseDown={(e) => {
 											// Reload the page if the user clicks the same engine twice
-											if (selectedIndex === index && query) {
+											if (tabIndex === index && query) {
 												document.getElementById(`frame-${index}`).src += '';
 											}
 										}}
@@ -252,20 +244,20 @@ export default function Search({ engines }) {
 				</header>
 				<Tab.Panels className='flex tab-panes h-full'>
 					<Tab.Panel
-						className={cx('w-full', data[0].display)}
+						className={cx('w-full', engines[0].display)}
 						key={0}
 						static
 						style={{
-							display: selectedIndex === 0 ? 'block' : 'none',
+							display: tabIndex === 0 ? 'block' : 'none',
 						}}
 					>
 						{query && (
 							<iframe
 								{...iFrameProps}
 								id='frame-0'
-								title={data[0].name}
-								src={processUrl(data[0].url, query)}
-								key={data[0].name}
+								title={engines[0].name}
+								src={processUrl(engines[0].url, query)}
+								key={engines[0].name}
 								onLoad={() => {
 									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: true }));
@@ -273,9 +265,9 @@ export default function Search({ engines }) {
 							/>
 						)}
 					</Tab.Panel>
-					{data.slice(1, data.length).map(({ preload, name, url, display }, prevIndex) => {
+					{engines.slice(1, engines.length).map(({ preload, name, url, display }, prevIndex) => {
 						const index = prevIndex + 1;
-						const isSelected = selectedIndex === index;
+						const isSelected = tabIndex === index;
 						return (
 							<Tab.Panel
 								className={cx('w-full', display)}

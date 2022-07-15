@@ -4,5 +4,6 @@ import Icon from './Icon';
 import LoadingIcon from './LoadingIcon';
 import Menu from './Menu';
 import ThemeSwitch from './ThemeSwitch';
+import Switch from './Switch';
 export * from './SiteIcons';
-export { Fade, Icon, LoadingIcon, ClientOnly, Menu, ThemeSwitch };
+export { Fade, Icon, LoadingIcon, ClientOnly, Menu, ThemeSwitch, Switch };
