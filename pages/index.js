@@ -9,6 +9,7 @@ import { TiDelete } from 'react-icons/ti';
 import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
+import Head from 'next/head';
 
 const { renderToString } = require('react-dom/server');
 
@@ -126,12 +127,13 @@ export default function Search({ engines }) {
 	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
 
 	const onSearch = async (value) => {
-		setQuery(value);
-		router.push({ pathname: router.pathname, query: { q: value } }, undefined, {
+		const q = value.trim();
+		setQuery(q);
+		router.push({ pathname: router.pathname, query: { q } }, undefined, {
 			shallow: true,
 		});
-		// window.location.replace(`${window.location.pathname}?q=${value}`);
-		if (value.length > 0) {
+		// window.location.replace(`${window.location.pathname}?q=${q}`);
+		if (q.length > 0) {
 			inputRef.current.blur();
 		}
 	};
@@ -144,7 +146,7 @@ export default function Search({ engines }) {
 				[index]: prev[index] === INIT ? LOADING : prev[index],
 			};
 		});
-		setFirstFrameLoaded(true)
+		setFirstFrameLoaded(true);
 	};
 
 	useEffect(() => {
@@ -155,8 +157,14 @@ export default function Search({ engines }) {
 		if (!q) inputRef.current.focus();
 	}, []);
 
+	const pageTitle = query ? query + ' - ' + engines[tabIndex].name : 'Metasearch';
+
 	return (
 		<main className='flex flex-col h-screen'>
+			<Head>
+				<title>{pageTitle}</title>
+				<meta property='og:title' content='My page title' key='title' />
+			</Head>
 			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange}>
 				<header>
 					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
