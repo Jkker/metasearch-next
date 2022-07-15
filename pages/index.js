@@ -152,6 +152,7 @@ export default function Search({ engines }) {
 				[index]: prev[index] === INIT ? LOADING : prev[index],
 			};
 		});
+		setFirstFrameLoaded(true)
 	};
 
 	useEffect(() => {
