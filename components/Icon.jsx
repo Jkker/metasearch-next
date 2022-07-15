@@ -13,9 +13,9 @@ function lightness(hex) {
 }
 
 export default function Icon({ children, color = '#ffffff', style, ...props }) {
-	const { theme } = useTheme();
+	const { theme, resolvedTheme } = useTheme();
 	if (!children) return null;
-	const dark = theme === 'dark';
+	const dark = theme === 'dark' || resolvedTheme === 'dark';
 	const l = lightness(color);
 	const newColor = l < 0.2 && dark ? '#fff' : color;
 	if (typeof children === 'string')

@@ -36,6 +36,13 @@ const pkgs = [
 	'vsc',
 ];
 
+const SiteStates = {
+	INIT: 0,
+	LOADING: 1,
+	READY: 2,
+};
+const { INIT, LOADING, READY } = SiteStates;
+
 export const getStaticProps = async () => {
 	await dbConnect();
 	const engines = await Engine.find({});
@@ -52,19 +59,34 @@ export const getStaticProps = async () => {
 	Object.assign(icons, localIcons);
 	return {
 		props: {
-			engines: JSON.parse(JSON.stringify(engines)).map(({ icon = 'IoGlobeOutline', ...engine }) => {
-				if (isValidSvg(icon))
+			engines: JSON.parse(JSON.stringify(engines))
+				.map(({ icon = 'IoGlobeOutline', ...engine }) => {
+					if (isValidSvg(icon))
+						return {
+							...engine,
+							icon,
+						};
+
+					const iconElement = icons[icon] || icons['IoGlobeOutline'];
 					return {
 						...engine,
-						icon,
+						icon: renderToString(iconElement()),
 					};
-
-				const iconElement = icons[icon] || icons['IoGlobeOutline'];
-				return {
-					...engine,
-					icon: renderToString(iconElement()),
-				};
-			}),
+				})
+				.map(({ name, ...item }) => ({
+					name,
+					display: cx(
+						item.mobile === false && 'hidden sm:flex',
+						item.desktop === false && 'flex sm:hidden'
+					),
+					state: item.preload ? LOADING : INIT,
+					...item,
+				}))
+				.sort((a, b) => {
+					if (a.weight < b.weight) return 1;
+					if (a.weight > b.weight) return -1;
+					return a.name < b.name ? -1 : 1;
+				}),
 		},
 		revalidate: 60,
 	};
@@ -91,13 +113,6 @@ const tabButtonStyles = cx(
 );
 
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
-
-const SiteStates = {
-	INIT: 0,
-	LOADING: 1,
-	READY: 2,
-};
-const { INIT, LOADING, READY } = SiteStates;
 
 export default function Search({ engines }) {
 	const router = useRouter();
@@ -151,14 +166,14 @@ export default function Search({ engines }) {
 		<main className='flex flex-col h-screen'>
 			<Tab.Group selectedIndex={selectedIndex} onChange={onEngineChange}>
 				<header>
-					<nav className='input-bar flex'>
+					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
 						<DebounceInput
 							minLength={1}
 							inputRef={inputRef}
 							debounceTimeout={800}
 							value={query}
 							onChange={(event) => onSearch(event.target.value)}
-							className='w-full h-9 p-2 pl-9 bg-white dark:bg-gray-700'
+							className='w-full h-9 p-2 pl-9 bg-transparent'
 							id='search-input'
 						/>
 						<button
@@ -187,7 +202,7 @@ export default function Search({ engines }) {
 						</Menu>
 					</nav>
 					<Tab.List
-						className='flex w-full justify-start bg-gray-100 dark:bg-gray-800 drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
+						className='z-10 flex w-full justify-start bg-white dark:bg-gray-800 drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
 						ref={TabListRef}
 						onWheel={(e) => {
 							// Convert vertical scroll to horizontal scroll

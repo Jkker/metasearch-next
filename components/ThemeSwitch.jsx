@@ -21,12 +21,12 @@ const ThemeIcon = ({ isDark, className = 'h-6 w-6' }) => (
 );
 
 export default function ThemeSwitch() {
-	const { theme, setTheme } = useTheme();
-	const isDark = theme === 'dark';
-	const toggleTheme = () => setTheme(isDark ? 'system' : 'dark');
+	const { theme, setTheme, resolvedTheme } = useTheme();
+	const isDark = theme === 'dark' || resolvedTheme === 'dark';
+	const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 	return (
 		<ClientOnly>
-			<Switch.Group as='div' className='flex gap-3'>
+			{/* <Switch.Group as='div' className='flex gap-3'>
 				<Switch.Label>Theme</Switch.Label>
 				<Switch
 					checked={isDark}
@@ -43,7 +43,7 @@ export default function ThemeSwitch() {
 						<ThemeIcon isDark={!isDark} className='h-4 w-4' />
 					</span>
 				</Switch>
-			</Switch.Group>
+			</Switch.Group> */}
 			<button
 				onClick={toggleTheme}
 				className={cx(
@@ -54,6 +54,7 @@ export default function ThemeSwitch() {
 				title='Toggle theme'
 			>
 				<ThemeIcon isDark={isDark} />
+				{isDark ? 'Light' : 'Dark'}
 			</button>
 		</ClientOnly>
 	);
