@@ -126,7 +126,7 @@ const tabButtonStyles = cx(
 
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
 
-export default function Search({ engines, hotkeys }) {
+export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
@@ -168,30 +168,75 @@ export default function Search({ engines, hotkeys }) {
 
 	const reloadIFrame = (index) => (document.getElementById(`frame-${index}`).src += '');
 
+	const goToPreviousTab = () =>
+		setTabIndex((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
+
+	const goToNextTab = () => setTabIndex((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
+
 	useEffect(() => {
 		// Get search query from url
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
 		if (q) setQuery(q);
 		if (!q) inputRef.current.focus();
-		window.addEventListener('keydown', ({ key }) => {
-			if (document.activeElement === inputRef.current || !(key in hotkeys)) return;
-			setTabIndex((currIndex) => {
-				const nextIndex = getNextTabIndex(currIndex, key);
-				if (nextIndex === currIndex) {
-					reloadIFrame(nextIndex);
-					return currIndex;
-				}
-				setTabState((prev) => {
-					return {
-						...prev,
-						[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
-					};
-				});
-				setFirstFrameLoaded(true);
 
-				return nextIndex;
-			});
+		// Register keyboard shortcuts
+		window.addEventListener('keydown', (e) => {
+			const key = e.key;
+			const inputFocused = document.activeElement === inputRef.current;
+
+			if (inputFocused) {
+				if (['Escape'].includes(key)) {
+					inputRef.current.blur();
+					TabListRef.current.focus();
+				}
+				return;
+			} else {
+				switch (key) {
+					case '/':
+					case '\\':
+						e.preventDefault();
+						inputRef.current.focus();
+						return;
+					case 'ArrowUp':
+					case 'ArrowLeft':
+						e.preventDefault();
+						goToPreviousTab();
+						return;
+					case 'ArrowRight':
+					case 'ArrowDown':
+						e.preventDefault();
+						goToNextTab();
+						return;
+					case 'Tab':
+						if (e.shiftKey && !e.ctrlKey) {
+							e.preventDefault();
+							goToPreviousTab();
+						} else if (!e.ctrlKey) {
+							goToNextTab();
+						}
+						return;
+				}
+
+				if (key in tabHotkeys) {
+					setTabIndex((currIndex) => {
+						const nextIndex = getNextTabIndex(currIndex, key);
+						if (nextIndex === currIndex) {
+							reloadIFrame(nextIndex);
+							return currIndex;
+						}
+						setTabState((prev) => {
+							return {
+								...prev,
+								[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
+							};
+						});
+						setFirstFrameLoaded(true);
+
+						return nextIndex;
+					});
+				}
+			}
 		});
 		return () => {
 			window.removeEventListener('keydown', () => {});
@@ -207,7 +252,7 @@ export default function Search({ engines, hotkeys }) {
 				<title>{pageTitle}</title>
 				<meta property='og:title' content='My page title' key='title' />
 			</Head>
-			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange}>
+			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange} manual>
 				<header>
 					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
 						<DebounceInput
