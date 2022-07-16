@@ -11,34 +11,6 @@ import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
 import Head from 'next/head';
 
-const { renderToString } = require('react-dom/server');
-
-const isValidSvg = (str) => str.includes('</svg>');
-
-const pkgs = [
-	'ai',
-	'bs',
-	'di',
-	'fc',
-	'gi',
-	'gr',
-	'im',
-	'si',
-	'ti',
-	'wi',
-	'bi',
-	'cg',
-	'fa',
-	'fi',
-	'go',
-	'hi',
-	'io5',
-	'md',
-	'ri',
-	'tb',
-	'vsc',
-];
-
 const SiteStates = {
 	INIT: 0,
 	LOADING: 1,
@@ -47,49 +19,86 @@ const SiteStates = {
 const { INIT, LOADING, READY } = SiteStates;
 
 export const getStaticProps = async () => {
+	const { renderToString } = require('react-dom/server');
+	const isValidSvg = (str) => str.includes('</svg>');
+
+	const ICON_PKG = [
+		'ai',
+		'bs',
+		'di',
+		'fc',
+		'gi',
+		'gr',
+		'im',
+		'si',
+		'ti',
+		'wi',
+		'bi',
+		'cg',
+		'fa',
+		'fi',
+		'go',
+		'hi',
+		'io5',
+		'md',
+		'ri',
+		'tb',
+		'vsc',
+	];
+
 	await dbConnect();
 	const engines = await Engine.find({});
 
 	const icons = {};
 
 	// Import react-icons
-	for (const pkg of pkgs) {
+	for (const pkg of ICON_PKG) {
 		const Icon = await import(`../node_modules/react-icons/${pkg}/index.js`);
 		Object.assign(icons, Icon);
 	}
 
 	const localIcons = await import('../components/SiteIcons.jsx');
 	Object.assign(icons, localIcons);
+
+	const sorted = JSON.parse(JSON.stringify(engines)).sort((a, b) => {
+		if (a.weight < b.weight) return 1;
+		if (a.weight > b.weight) return -1;
+		return a.name < b.name ? -1 : 1;
+	});
+	const hotkeys = sorted.reduce((acc, engine, index) => {
+		const key = engine.key[0].toLowerCase();
+		acc[key] = acc[key] ? [...acc[key], index] : [index];
+		return acc;
+	}, {});
+
+	const processIcon = ({ icon = 'IoGlobeOutline', ...engine }) => {
+		if (isValidSvg(icon))
+			return {
+				...engine,
+				icon,
+			};
+		const iconElement = icons[icon] || icons['IoGlobeOutline'];
+		return {
+			...engine,
+			icon: renderToString(iconElement()),
+		};
+	};
+
+	const processDisplay = ({ name, key, ...item }) => ({
+		name,
+		key: key.toLowerCase() || name.toLowerCase(),
+		display: cx(
+			item.mobile === false && 'hidden sm:flex',
+			item.desktop === false && 'flex sm:hidden'
+		),
+		state: item.preload ? LOADING : INIT,
+		...item,
+	});
+
 	return {
 		props: {
-			engines: JSON.parse(JSON.stringify(engines))
-				.map(({ icon = 'IoGlobeOutline', ...engine }) => {
-					if (isValidSvg(icon))
-						return {
-							...engine,
-							icon,
-						};
-
-					const iconElement = icons[icon] || icons['IoGlobeOutline'];
-					return {
-						...engine,
-						icon: renderToString(iconElement()),
-					};
-				})
-				.map(({ name, ...item }) => ({
-					name,
-					display: cx(
-						item.mobile === false && 'hidden sm:flex',
-						item.desktop === false && 'flex sm:hidden'
-					),
-					state: item.preload ? LOADING : INIT,
-					...item,
-				}))
-				.sort((a, b) => {
-					if (a.weight < b.weight) return 1;
-					if (a.weight > b.weight) return -1;
-					return a.name < b.name ? -1 : 1;
-				}),
+			engines: sorted.map(processIcon).map(processDisplay),
+			hotkeys,
 		},
 		revalidate: 60,
 	};
@@ -117,7 +126,7 @@ const tabButtonStyles = cx(
 
 const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
 
-export default function Search({ engines }) {
+export default function Search({ engines, hotkeys }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
@@ -149,12 +158,45 @@ export default function Search({ engines }) {
 		setFirstFrameLoaded(true);
 	};
 
+	const getNextTabIndex = (currIndex, key) => {
+		for (let i = currIndex + 1; i < engines.length + currIndex; i++) {
+			const index = i % (engines.length - 1);
+			if (engines[index].key[0] === key.toLowerCase()) return index;
+		}
+		return currIndex;
+	};
+
+	const reloadIFrame = (index) => (document.getElementById(`frame-${index}`).src += '');
+
 	useEffect(() => {
 		// Get search query from url
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
 		if (q) setQuery(q);
 		if (!q) inputRef.current.focus();
+		window.addEventListener('keydown', ({ key }) => {
+			if (document.activeElement === inputRef.current || !(key in hotkeys)) return;
+			setTabIndex((currIndex) => {
+				const nextIndex = getNextTabIndex(currIndex, key);
+				if (nextIndex === currIndex) {
+					reloadIFrame(nextIndex);
+					return currIndex;
+				}
+				setTabState((prev) => {
+					return {
+						...prev,
+						[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
+					};
+				});
+				setFirstFrameLoaded(true);
+
+				return nextIndex;
+			});
+		});
+		return () => {
+			window.removeEventListener('keydown', () => {});
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const pageTitle = query ? query + ' - ' + engines[tabIndex].name : 'Metasearch';
@@ -180,9 +222,7 @@ export default function Search({ engines }) {
 						<button
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
 							onClick={(e) => {
-								if (query) {
-									document.getElementById(`frame-${tabIndex}`).src += '';
-								}
+								if (query) reloadIFrame(tabIndex);
 							}}
 							title='Search'
 						>
@@ -226,9 +266,7 @@ export default function Search({ engines }) {
 										}}
 										onMouseDown={(e) => {
 											// Reload the page if the user clicks the same engine twice
-											if (tabIndex === index && query) {
-												document.getElementById(`frame-${index}`).src += '';
-											}
+											if (tabIndex === index && query) reloadIFrame(index);
 										}}
 										title={'Search ' + name}
 									>
