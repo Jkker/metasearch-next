@@ -174,7 +174,8 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 
 			if (key === 'Enter' && !inputFocused) {
 				setTabIndex((currIndex) => {
-					openLink(document.getElementById(`frame-${currIndex}`).src);
+					const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
+					if (url) openLink(url);
 					return currIndex;
 				});
 				return;
