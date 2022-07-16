@@ -60,7 +60,7 @@ export const getStaticProps = async () => {
 	const localIcons = await import('../components/SiteIcons.jsx');
 	Object.assign(icons, localIcons);
 
-	const sorted = JSON.parse(JSON.stringify(engines)).sort((a, b) => {
+	const sorted = JSON.parse(JSON.stringify(engines)).filter(e => !e.disabled).sort((a, b) => {
 		if (a.weight < b.weight) return 1;
 		if (a.weight > b.weight) return -1;
 		return a.name < b.name ? -1 : 1;
