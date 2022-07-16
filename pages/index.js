@@ -1,15 +1,15 @@
 import { Tab } from '@headlessui/react';
 import cx from 'classnames';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
 import { isMobile } from 'react-device-detect';
-import { FiSearch } from 'react-icons/fi';
+import { FiExternalLink, FiSearch } from 'react-icons/fi';
 import { TiDelete } from 'react-icons/ti';
-import { Fade, Icon, LoadingIcon, Menu, ThemeSwitch } from '../components';
+import { Fade, Menu, TabButton, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
-import Head from 'next/head';
 
 const SiteStates = {
 	INIT: 0,
@@ -60,11 +60,13 @@ export const getStaticProps = async () => {
 	const localIcons = await import('../components/SiteIcons.jsx');
 	Object.assign(icons, localIcons);
 
-	const sorted = JSON.parse(JSON.stringify(engines)).filter(e => !e.disabled).sort((a, b) => {
-		if (a.weight < b.weight) return 1;
-		if (a.weight > b.weight) return -1;
-		return a.name < b.name ? -1 : 1;
-	});
+	const sorted = JSON.parse(JSON.stringify(engines))
+		.filter((e) => !e.disabled)
+		.sort((a, b) => {
+			if (a.weight < b.weight) return 1;
+			if (a.weight > b.weight) return -1;
+			return a.name < b.name ? -1 : 1;
+		});
 	const hotkeys = sorted.reduce((acc, engine, index) => {
 		const key = engine.key[0].toLowerCase();
 		acc[key] = acc[key] ? [...acc[key], index] : [index];
@@ -114,18 +116,6 @@ const iFrameProps = {
 		'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
 };
 
-const tabButtonStyles = cx(
-	'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px]',
-	'transition-all duration-200 ease-in-out',
-	'bg-white dark:bg-gray-800',
-	'hover:shadow-lg hover:brightness-95 dark:hover:brightness-125',
-	'active:brightness-90 dark:active:brightness-125',
-	'focus:outline-none focus-visible:brightness-90 dark:focus-visible:brightness-110',
-	'border-b-[2px]'
-);
-
-const processUrl = (url, key) => url.replace(/%s/g, encodeURIComponent(key));
-
 export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
@@ -141,20 +131,15 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		router.push({ pathname: router.pathname, query: { q } }, undefined, {
 			shallow: true,
 		});
-		// window.location.replace(`${window.location.pathname}?q=${q}`);
-		if (q.length > 0) {
-			inputRef.current.blur();
-		}
+		if (q.length > 0) inputRef.current.blur();
 	};
 
 	const onEngineChange = (index) => {
 		setTabIndex(index);
-		setTabState((prev) => {
-			return {
-				...prev,
-				[index]: prev[index] === INIT ? LOADING : prev[index],
-			};
-		});
+		setTabState((prev) => ({
+			...prev,
+			[index]: prev[index] === INIT ? LOADING : prev[index],
+		}));
 		setFirstFrameLoaded(true);
 	};
 
@@ -166,12 +151,13 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		return currIndex;
 	};
 
-	const reloadIFrame = (index) => (document.getElementById(`frame-${index}`).src += '');
-
 	const goToPreviousTab = () =>
 		setTabIndex((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
-
 	const goToNextTab = () => setTabIndex((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
+
+	const reloadPanel = (index) => (document.getElementById(`frame-${index}`).src += '');
+	const processUrl = (url = engines[tabIndex].url) => url.replace(/%s/g, encodeURIComponent(query));
+	const openLink = (link = processUrl()) => window?.open(link, '_blank', 'noopener', 'noreferrer');
 
 	useEffect(() => {
 		// Get search query from url
@@ -183,8 +169,16 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		// Register keyboard shortcuts
 		window.addEventListener('keydown', (e) => {
 			const key = e.key;
+
 			const inputFocused = document.activeElement === inputRef.current;
 
+			if (key === 'Enter' && !inputFocused) {
+				setTabIndex((currIndex) => {
+					openLink(document.getElementById(`frame-${currIndex}`).src);
+					return currIndex;
+				});
+				return;
+			}
 			if (inputFocused) {
 				if (['Escape'].includes(key)) {
 					inputRef.current.blur();
@@ -222,7 +216,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 					setTabIndex((currIndex) => {
 						const nextIndex = getNextTabIndex(currIndex, key);
 						if (nextIndex === currIndex) {
-							reloadIFrame(nextIndex);
+							reloadPanel(nextIndex);
 							return currIndex;
 						}
 						setTabState((prev) => {
@@ -267,7 +261,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						<button
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
 							onClick={(e) => {
-								if (query) reloadIFrame(tabIndex);
+								if (query) reloadPanel(tabIndex);
 							}}
 							title='Search'
 						>
@@ -284,6 +278,19 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						</Fade>
 
 						<Menu>
+							<a
+								className={cx(
+									'whitespace-nowrap flex items-center justify-between w-full px-2 py-1',
+									'transition-all duration-200 ease-in-out',
+									'gap-2'
+								)}
+								href={processUrl()}
+								target='_blank'
+								rel='noopener noreferrer'
+							>
+								Open
+								<FiExternalLink className='w-5 h-5' />
+							</a>
 							<ThemeSwitch />
 						</Menu>
 					</nav>
@@ -300,35 +307,21 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						}}
 						as='nav'
 					>
-						{engines.map(({ icon, color, name, display }, index) => (
+						{engines.map(({ url, ...props }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
-									<button
-										className={cx(tabButtonStyles, selected && 'text-white shadow-inner', display)}
-										style={{
-											borderColor: color,
-											backgroundColor: selected ? color : undefined,
+									<TabButton
+										{...props}
+										selected={selected}
+										loading={tabState[index] === LOADING && query}
+										onDoubleClick={() => {
+											openLink(processUrl(url));
 										}}
 										onMouseDown={(e) => {
 											// Reload the page if the user clicks the same engine twice
-											if (tabIndex === index && query) reloadIFrame(index);
+											if (tabIndex === index && query) reloadPanel(index);
 										}}
-										title={'Search ' + name}
-									>
-										<>
-											<span className='absolute t-0 r-0'>
-												<Fade show={tabState[index] === LOADING && query}>
-													<LoadingIcon
-														className={cx(
-															selected ? 'text-white' : 'text-gray-500 dark:text-white'
-														)}
-													/>
-												</Fade>
-											</span>
-											<Icon color={selected ? '#ffffff' : color}>{icon}</Icon>
-										</>
-										<span className='hidden sm:inline sm:ml-2'>{name}</span>
-									</button>
+									/>
 								)}
 							</Tab>
 						))}
@@ -348,7 +341,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 								{...iFrameProps}
 								id='frame-0'
 								title={engines[0].name}
-								src={processUrl(engines[0].url, query)}
+								src={processUrl(engines[0].url)}
 								key={engines[0].name}
 								onLoad={() => {
 									setFirstFrameLoaded(true);
@@ -376,7 +369,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 										title={name}
 										key={name}
 										loading={preload ? 'eager' : 'lazy'}
-										src={processUrl(url, query)}
+										src={processUrl(url)}
 										onLoad={() => {
 											setTabState((prev) => ({ ...prev, [index]: READY }));
 										}}

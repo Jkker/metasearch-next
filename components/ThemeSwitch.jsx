@@ -2,8 +2,9 @@ import { Switch } from '@headlessui/react';
 import cx from 'classnames';
 import { useTheme } from 'next-themes';
 import { ClientOnly } from '.';
+import { forwardRef } from 'react';
 
-const ThemeIcon = ({ isDark, className = 'h-6 w-6' }) => (
+const ThemeIcon = ({ isDark, className = 'h-5 w-5' }) => (
 	<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' className={className}>
 		<g
 			className={cx('nc-int-icon js-nc-int-icon nc-int-icon-rotate fill-current', {
@@ -20,13 +21,13 @@ const ThemeIcon = ({ isDark, className = 'h-6 w-6' }) => (
 	</svg>
 );
 
-export default function ThemeSwitch() {
+function ThemeSwitch({ className = '', active, ...props }, ref) {
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const isDark = theme === 'dark' || resolvedTheme === 'dark';
 	const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 	return (
 		<ClientOnly>
-			{/* <Switch.Group as='div' className='flex gap-3'>
+			<Switch.Group as='div' className='flex gap-3 px-2 py-1 w-full justify-between'>
 				<Switch.Label>Theme</Switch.Label>
 				<Switch
 					checked={isDark}
@@ -43,8 +44,8 @@ export default function ThemeSwitch() {
 						<ThemeIcon isDark={!isDark} className='h-4 w-4' />
 					</span>
 				</Switch>
-			</Switch.Group> */}
-			<button
+			</Switch.Group>
+			{/* <button
 				onClick={toggleTheme}
 				className={cx(
 					'whitespace-nowrap h-9 flex items-center justify-between w-full p-2',
@@ -52,10 +53,14 @@ export default function ThemeSwitch() {
 					'gap-3'
 				)}
 				title='Toggle theme'
+				ref={ref}
+				{...props}
 			>
 				<ThemeIcon isDark={isDark} />
 				{isDark ? 'Light' : 'Dark'}
-			</button>
+			</button> */}
 		</ClientOnly>
 	);
 }
+
+export default forwardRef(ThemeSwitch);
