@@ -1,7 +1,8 @@
 import cx from 'classnames';
 import { useTheme } from 'next-themes';
-import { ClientOnly, Fade, Icon, LoadingIcon } from '.';
 import { forwardRef } from 'react';
+import { FiExternalLink } from 'react-icons/fi';
+import { ClientOnly, Fade, Icon, LoadingIcon } from '.';
 
 function lightness(hex) {
 	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -15,7 +16,20 @@ function lightness(hex) {
 }
 
 function Button(
-	{ icon, color, name, display, selected, loading, onDoubleClick, onMouseDown, onClick, ...props },
+	{
+		icon,
+		color,
+		name,
+		display,
+		selected,
+		loading,
+		onDoubleClick,
+		onMouseDown,
+		onClick,
+		onMouseUp,
+		embeddable,
+		...props
+	},
 	ref
 ) {
 	const { theme, resolvedTheme } = useTheme();
@@ -27,7 +41,7 @@ function Button(
 			<button
 				ref={ref}
 				className={cx(
-					'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px]',
+					'box-border flex items-center whitespace-nowrap h-9 min-w-[36px] sm:min-w-fit px-[10px] sm:px-1 md:px-2 lg:px-3',
 					'transition-all duration-200 ease-in-out',
 					'bg-white dark:bg-gray-800',
 					selected ? 'text-white' : 'text-black dark:text-gray-50',
@@ -47,6 +61,7 @@ function Button(
 				title={'Search ' + name}
 				onDoubleClick={onDoubleClick}
 				onMouseDown={onMouseDown}
+				onMouseUp={onMouseUp}
 				onClick={onClick}
 			>
 				<span className='absolute t-0 r-0'>
@@ -57,7 +72,9 @@ function Button(
 					</Fade>
 				</span>
 				<Icon color={selected ? '#fff' : newColor}>{icon}</Icon>
-				<span className='hidden sm:inline sm:ml-2'>{name}</span>
+				<span className='hidden md:flex md:ml-2 whitespace-nowrap items-center'>
+					{name} {!embeddable && <FiExternalLink className='ml-[6px] w-4 h-4 text-gray-500' />}
+				</span>
 			</button>
 		</ClientOnly>
 	);

@@ -135,7 +135,13 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	};
 
 	const onEngineChange = (index) => {
-		setTabIndex(index);
+		setTabIndex((prev) => {
+			if (!engines[index].embeddable) {
+				openLink(processUrl(engines[index].url));
+				return prev;
+			}
+			return index;
+		});
 		setTabState((prev) => ({
 			...prev,
 			[index]: prev[index] === INIT ? LOADING : prev[index],
@@ -145,7 +151,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 
 	const getNextTabIndex = (currIndex, key) => {
 		for (let i = currIndex + 1; i < engines.length + currIndex; i++) {
-			const index = i % (engines.length - 1);
+			const index = i % engines.length;
 			if (engines[index].key[0] === key.toLowerCase()) return index;
 		}
 		return currIndex;
@@ -216,6 +222,12 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 				if (key in tabHotkeys) {
 					setTabIndex((currIndex) => {
 						const nextIndex = getNextTabIndex(currIndex, key);
+						console.log(`🚀 ~ setTabIndex ~ nextIndex`, nextIndex, engines[nextIndex].name);
+						if (!engines[nextIndex].embeddable) {
+							console.log('!embeddable', engines[nextIndex].name);
+							openLink(processUrl(engines[nextIndex].url));
+							return currIndex;
+						}
 						if (nextIndex === currIndex) {
 							reloadPanel(nextIndex);
 							return currIndex;
@@ -270,7 +282,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						</button>
 						<Fade show={query.length > 0}>
 							<button
-								className='absolute top-0 right-9 h-9 w-9 flex-center opacity-50'
+								className='absolute top-0 right-9 h-9 w-9 flex-center opacity-40'
 								onClick={() => onSearch('')}
 								title='Clear search'
 							>
@@ -308,19 +320,24 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						}}
 						as='nav'
 					>
-						{engines.map(({ url, ...props }, index) => (
+						{engines.map(({ url, embeddable, ...props }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<TabButton
 										{...props}
+										embeddable={embeddable}
 										selected={selected}
 										loading={tabState[index] === LOADING && query}
 										onDoubleClick={() => {
 											openLink(processUrl(url));
 										}}
-										onMouseDown={(e) => {
+										onClick={(e) => {
 											// Reload the page if the user clicks the same engine twice
 											if (tabIndex === index && query) reloadPanel(index);
+											if (!embeddable) {
+												e.preventDefault();
+												openLink(processUrl(url));
+											}
 										}}
 									/>
 								)}
