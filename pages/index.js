@@ -336,7 +336,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 											if (tabIndex === index && query) reloadPanel(index);
 											if (!embeddable) {
 												e.preventDefault();
-												openLink(processUrl(url));
+												
 											}
 										}}
 									/>
