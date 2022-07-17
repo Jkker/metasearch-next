@@ -113,7 +113,7 @@ const iFrameProps = {
 	loading: 'eager',
 	referrerPolicy: 'no-referrer',
 	sandbox:
-		'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
+		'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-same-origin allow-presentation',
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
