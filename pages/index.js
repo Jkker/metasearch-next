@@ -63,8 +63,8 @@ export const getStaticProps = async () => {
 	const sorted = JSON.parse(JSON.stringify(engines))
 		.filter((e) => !e.disabled)
 		.sort((a, b) => {
-			if (a.weight < b.weight) return -1;
-			if (a.weight > b.weight) return 1;
+			if (a.weight < b.weight) return 1;
+			if (a.weight > b.weight) return -1;
 			return a.name < b.name ? -1 : 1;
 		});
 	const hotkeys = sorted.reduce((acc, engine, index) => {
@@ -336,7 +336,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 											if (tabIndex === index && query) reloadPanel(index);
 											if (!embeddable) {
 												e.preventDefault();
-												
+
 											}
 										}}
 									/>
