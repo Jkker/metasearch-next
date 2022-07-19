@@ -63,8 +63,8 @@ export const getStaticProps = async () => {
 	const sorted = JSON.parse(JSON.stringify(engines))
 		.filter((e) => !e.disabled)
 		.sort((a, b) => {
-			if (a.weight < b.weight) return 1;
-			if (a.weight > b.weight) return -1;
+			if (a.weight < b.weight) return -1;
+			if (a.weight > b.weight) return 1;
 			return a.name < b.name ? -1 : 1;
 		});
 	const hotkeys = sorted.reduce((acc, engine, index) => {
@@ -86,15 +86,17 @@ export const getStaticProps = async () => {
 		};
 	};
 
-	const processDisplay = ({ name, key, ...item }) => ({
+	const processDisplay = ({ name, key, embeddable, ...item }) => ({
 		name,
 		key: key.toLowerCase() || name.toLowerCase(),
 		display: cx(
 			item.mobile === false && 'hidden sm:flex',
 			item.desktop === false && 'flex sm:hidden'
 		),
-		state: item.preload ? LOADING : INIT,
+		state: INIT,
+		embeddable: true,
 		...item,
+		preload: false,
 	});
 
 	return {
@@ -265,7 +267,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						<DebounceInput
 							minLength={1}
 							inputRef={inputRef}
-							debounceTimeout={isMobile ? 2000 : 800}
+							debounceTimeout={isMobile ? 10000 : 800}
 							value={query}
 							onChange={(event) => onSearch(event.target.value)}
 							className='w-full h-9 p-2 pl-9 bg-transparent'
