@@ -114,8 +114,6 @@ const iFrameProps = {
 	frameBorder: '0',
 	loading: 'eager',
 	referrerPolicy: 'no-referrer',
-	sandbox:
-		'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation',
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
@@ -338,7 +336,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 											if (tabIndex === index && query) reloadPanel(index);
 											if (!embeddable) {
 												e.preventDefault();
-												openLink(processUrl(url));
+												
 											}
 										}}
 									/>
