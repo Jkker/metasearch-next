@@ -369,7 +369,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							/>
 						)}
 					</Tab.Panel>
-					{engines.slice(1, engines.length).map(({ preload, name, url, display }, prevIndex) => {
+					{engines.slice(1, engines.length).map(({ preload, name, url, display, embeddable }, prevIndex) => {
 						const index = prevIndex + 1;
 						const isSelected = tabIndex === index;
 						return (
@@ -381,7 +381,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 								}}
 								static
 							>
-								{query && firstFrameLoaded && (isSelected || preload) && (
+								{embeddable && query && firstFrameLoaded && (isSelected || preload) && (
 									<iframe
 										{...iFrameProps}
 										id={`frame-${index}`}
