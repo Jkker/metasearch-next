@@ -128,7 +128,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
-	// const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
 	const [tabIndex, setTabIndex] = useState(0);
 	const [query, setQuery] = useState('');
 	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
@@ -165,7 +164,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		setTabIndex((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
 	const goToNextTab = () => setTabIndex((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
 
-	const isLoaded = (index) => tabState[index] === READY;
 	const reloadPanel = (index) => {
 		if (engines[index].embeddable) document.getElementById(`frame-${index}`).src += '';
 	};
@@ -177,85 +175,85 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
 		if (q) setQuery(q);
-		if (!q) inputRef.current.focus();
+		else inputRef.current.focus();
 
 		// Register keyboard shortcuts
-		if (!isMobile) {
-			window.addEventListener('keydown', (e) => {
-				const key = e.key;
-				const { altKey, ctrlKey, metaKey, shiftKey } = e;
 
-				const inputFocused = document.activeElement === inputRef.current;
+		const listener = (e) => {
+			const key = e.key;
+			const { altKey, ctrlKey, metaKey, shiftKey } = e;
 
-				if (key === 'Enter' && !inputFocused) {
-					if (altKey || ctrlKey || metaKey || shiftKey)
-						setTabIndex((currIndex) => {
-							const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
-							if (url) openLink(url);
-							return currIndex;
-						});
-					else if (isLoaded(tabIndex)) reloadPanel(tabIndex);
-					return;
+			const inputFocused = document.activeElement === inputRef.current;
+
+			if (key === 'Enter' && !inputFocused) {
+				if (altKey || ctrlKey || metaKey || shiftKey)
+					setTabIndex((currIndex) => {
+						const url = document.getElementById(`frame-${currIndex}`)?.getAttribute('data-src');
+						openLink(url);
+						return currIndex;
+					});
+				else if (tabState[tabIndex] === READY) reloadPanel(tabIndex);
+				return;
+			}
+			if (inputFocused) {
+				if (['Escape'].includes(key)) {
+					inputRef.current.blur();
+					TabListRef.current.focus();
 				}
-				if (inputFocused) {
-					if (['Escape'].includes(key)) {
-						inputRef.current.blur();
-						TabListRef.current.focus();
-					}
-					return;
-				} else {
-					switch (key) {
-						case '/':
-						case '\\':
-							e.preventDefault();
-							inputRef.current.focus();
-							return;
-						case 'ArrowUp':
-						case 'ArrowLeft':
+				return;
+			} else {
+				switch (key) {
+					case '/':
+					case '\\':
+						e.preventDefault();
+						inputRef.current.focus();
+						return;
+					case 'ArrowUp':
+					case 'ArrowLeft':
+						e.preventDefault();
+						goToPreviousTab();
+						return;
+					case 'ArrowRight':
+					case 'ArrowDown':
+						e.preventDefault();
+						goToNextTab();
+						return;
+					case 'Tab':
+						if (shiftKey && !ctrlKey) {
 							e.preventDefault();
 							goToPreviousTab();
-							return;
-						case 'ArrowRight':
-						case 'ArrowDown':
-							e.preventDefault();
+						} else if (!ctrlKey) {
 							goToNextTab();
-							return;
-						case 'Tab':
-							if (shiftKey && !ctrlKey) {
-								e.preventDefault();
-								goToPreviousTab();
-							} else if (!ctrlKey) {
-								goToNextTab();
-							}
-							return;
-					}
-
-					if (key in tabHotkeys) {
-						setTabIndex((currIndex) => {
-							const nextIndex = getNextTabIndex(currIndex, key);
-							// if (!engines[nextIndex].embeddable) {
-							// 	openLink(processUrl(engines[nextIndex].url));
-							// 	return currIndex;
-							// }
-							if (nextIndex === currIndex) {
-								reloadPanel(nextIndex);
-								return currIndex;
-							}
-							setTabState((prev) => {
-								return {
-									...prev,
-									[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
-								};
-							});
-							setFirstFrameLoaded(true);
-
-							return nextIndex;
-						});
-					}
+						}
+						return;
 				}
-			});
+
+				if (key in tabHotkeys) {
+					setTabIndex((currIndex) => {
+						const nextIndex = getNextTabIndex(currIndex, key);
+
+						if (nextIndex === currIndex) {
+							reloadPanel(nextIndex);
+							return currIndex;
+						}
+						setTabState((prev) => {
+							return {
+								...prev,
+								[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
+							};
+						});
+						setFirstFrameLoaded(true);
+
+						return nextIndex;
+					});
+				}
+			}
+		};
+
+		if (!isMobile) {
+			window.addEventListener('keydown', listener);
 			return () => {
-				window.removeEventListener('keydown', () => {});
+				window.removeEventListener('keydown', listener);
 			};
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -380,6 +378,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							({ preload, name, url, display, embeddable, url_scheme, color, icon }, prevIndex) => {
 								const index = prevIndex + 1;
 								const isSelected = tabIndex === index;
+								const src = processUrl(url);
 								return (
 									<Tab.Panel
 										className={cx('w-full', display)}
@@ -399,14 +398,19 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														title={name}
 														key={name}
 														loading={preload ? 'eager' : 'lazy'}
-														src={processUrl(url)}
+														src={src}
+														data-src={src}
 														onLoad={() => {
 															setTabState((prev) => ({ ...prev, [index]: READY }));
 														}}
 													/>
 												)
 											) : (
-												<div className='max-w-[240px] m-auto flex-center gap-4 h-full flex-col pb-[72px]'>
+												<div
+													className='max-w-[240px] m-auto flex-center gap-4 h-full flex-col pb-[72px]'
+													id={`frame-${index}`}
+													data-src={src}
+												>
 													{isMobile && (
 														<a
 															href={processUrl(url_scheme)}
@@ -427,7 +431,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														</a>
 													)}
 													<a
-														href={processUrl(url)}
+														href={src}
 														className={cx(
 															'w-full box-border flex-center gap-2 whitespace-nowrap px-6 py-2.5 rounded uppercase',
 															'transition-all duration-200 ease-in-out',
@@ -453,7 +457,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														<HiExternalLink />
 													</a>
 													<a
-														href={processUrl(url)}
+														href={src}
 														className={cx(
 															'w-full box-border flex-center gap-2 whitespace-nowrap px-6 py-2.5 rounded uppercase',
 															'transition-all duration-200 ease-in-out',
