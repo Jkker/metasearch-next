@@ -1,15 +1,17 @@
 import { Tab } from '@headlessui/react';
-import cx from 'classnames';
+import cx from 'clsx';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
 import { isMobile } from 'react-device-detect';
 import { FiExternalLink, FiSearch } from 'react-icons/fi';
+import { HiExternalLink } from 'react-icons/hi';
 import { TiDelete } from 'react-icons/ti';
-import { Fade, Menu, TabButton, ThemeSwitch } from '../components';
+import { Fade, Icon, Menu, TabButton, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
+import { lightness } from '../utils';
 
 const SiteStates = {
 	INIT: 0,
@@ -73,6 +75,12 @@ export const getStaticProps = async () => {
 		return acc;
 	}, {});
 
+	const computeLightness = ({ color, ...engine }) => ({
+		...engine,
+		lightness: lightness(color),
+		color,
+	});
+
 	const processIcon = ({ icon = 'IoGlobeOutline', ...engine }) => {
 		if (isValidSvg(icon))
 			return {
@@ -100,7 +108,7 @@ export const getStaticProps = async () => {
 
 	return {
 		props: {
-			engines: sorted.map(processIcon).map(processDisplay),
+			engines: sorted.map(computeLightness).map(processIcon).map(processDisplay),
 			hotkeys,
 		},
 		revalidate: 60,
@@ -120,10 +128,12 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const router = useRouter();
 	const TabListRef = useRef(null);
 	const inputRef = useRef(null);
-	const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
+	// const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
 	const [tabIndex, setTabIndex] = useState(0);
 	const [query, setQuery] = useState('');
 	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
+	const firstFrameLoaded = tabState[0] === READY;
+	const setFirstFrameLoaded = (args) => undefined;
 
 	const onSearch = async (value) => {
 		const q = value.trim();
@@ -135,16 +145,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	};
 
 	const onEngineChange = (index) => {
-		setTabIndex((prev) => {
-			// if (!engines[index].embeddable) {
-			// 	openLink(processUrl(engines[index].url));
-			// 	return prev;
-			// }
-			return index;
-		});
+		setTabIndex(index);
 		setTabState((prev) => ({
 			...prev,
-			[index]: prev[index] === INIT ? LOADING : prev[index],
+			[index]: prev[index] === INIT ? (engines[index].embeddable ? LOADING : READY) : prev[index],
 		}));
 		setFirstFrameLoaded(true);
 	};
@@ -161,7 +165,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		setTabIndex((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
 	const goToNextTab = () => setTabIndex((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
 
-	const reloadPanel = (index) => (document.getElementById(`frame-${index}`).src += '');
+	const isLoaded = (index) => tabState[index] === READY;
+	const reloadPanel = (index) => {
+		if (engines[index].embeddable) document.getElementById(`frame-${index}`).src += '';
+	};
 	const processUrl = (url = engines[tabIndex].url) => url.replace(/%s/g, encodeURIComponent(query));
 	const openLink = (link = processUrl()) => window?.open(link, '_blank', 'noopener', 'noreferrer');
 
@@ -176,15 +183,18 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		if (!isMobile) {
 			window.addEventListener('keydown', (e) => {
 				const key = e.key;
+				const { altKey, ctrlKey, metaKey, shiftKey } = e;
 
 				const inputFocused = document.activeElement === inputRef.current;
 
 				if (key === 'Enter' && !inputFocused) {
-					setTabIndex((currIndex) => {
-						const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
-						if (url) openLink(url);
-						return currIndex;
-					});
+					if (altKey || ctrlKey || metaKey || shiftKey)
+						setTabIndex((currIndex) => {
+							const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
+							if (url) openLink(url);
+							return currIndex;
+						});
+					else if (isLoaded(tabIndex)) reloadPanel(tabIndex);
 					return;
 				}
 				if (inputFocused) {
@@ -211,10 +221,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							goToNextTab();
 							return;
 						case 'Tab':
-							if (e.shiftKey && !e.ctrlKey) {
+							if (shiftKey && !ctrlKey) {
 								e.preventDefault();
 								goToPreviousTab();
-							} else if (!e.ctrlKey) {
+							} else if (!ctrlKey) {
 								goToNextTab();
 							}
 							return;
@@ -320,12 +330,12 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						}}
 						as='nav'
 					>
-						{engines.map(({ url, embeddable, ...props }, index) => (
+						{engines.map(({ url, lightness, ...props }, index) => (
 							<Tab key={index} as={Fragment}>
 								{({ selected }) => (
 									<TabButton
 										{...props}
-										embeddable={embeddable}
+										lightness={lightness}
 										selected={selected}
 										loading={tabState[index] === LOADING && query}
 										onDoubleClick={() => {
@@ -334,9 +344,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 										onClick={(e) => {
 											// Reload the page if the user clicks the same engine twice
 											if (tabIndex === index && query) reloadPanel(index);
-											// if (!embeddable) {
-											// 	e.preventDefault();
-											// }
 										}}
 									/>
 								)}
@@ -362,46 +369,110 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 								key={engines[0].name}
 								onLoad={() => {
 									setFirstFrameLoaded(true);
-									setTabState((prev) => ({ ...prev, 0: true }));
+									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
 							/>
 						)}
 					</Tab.Panel>
 					{engines
 						.slice(1, engines.length)
-						.map(({ preload, name, url, display, embeddable }, prevIndex) => {
-							const index = prevIndex + 1;
-							const isSelected = tabIndex === index;
-							return (
-								<Tab.Panel
-									className={cx('w-full', display)}
-									key={index}
-									style={{
-										display: isSelected ? 'block' : 'none',
-									}}
-									static
-								>
-									{embeddable && query && firstFrameLoaded && (isSelected || preload) && (
-										<iframe
-											{...iFrameProps}
-											id={`frame-${index}`}
-											title={name}
-											key={name}
-											loading={preload ? 'eager' : 'lazy'}
-											src={processUrl(url)}
-											onLoad={() => {
-												setTabState((prev) => ({ ...prev, [index]: READY }));
-											}}
-										/>
-									)}
-									{/* <ul>
-										<li>name: {name}</li>
-										<li>embeddable: {JSON.stringify(embeddable)}</li>
-										<li>preload: {JSON.stringify(preload)}</li>
-									</ul> */}
-								</Tab.Panel>
-							);
-						})}
+						.map(
+							({ preload, name, url, display, embeddable, url_scheme, color, icon }, prevIndex) => {
+								const index = prevIndex + 1;
+								const isSelected = tabIndex === index;
+								return (
+									<Tab.Panel
+										className={cx('w-full', display)}
+										key={index}
+										style={{
+											display: isSelected ? 'block' : 'none',
+										}}
+										static
+									>
+										{query &&
+											(embeddable ? (
+												firstFrameLoaded &&
+												(isSelected || preload) && (
+													<iframe
+														{...iFrameProps}
+														id={`frame-${index}`}
+														title={name}
+														key={name}
+														loading={preload ? 'eager' : 'lazy'}
+														src={processUrl(url)}
+														onLoad={() => {
+															setTabState((prev) => ({ ...prev, [index]: READY }));
+														}}
+													/>
+												)
+											) : (
+												<div className='max-w-[240px] m-auto flex-center gap-4 h-full flex-col pb-[72px]'>
+													{isMobile && (
+														<a
+															href={processUrl(url_scheme)}
+															className={cx(
+																'w-full box-border flex-center gap-2 whitespace-nowrap px-6 py-2.5 rounded uppercase',
+																'transition-all duration-200 ease-in-out',
+																'text-white dark:text-gray-50',
+																'hover:brightness-95',
+																'dark:hover:brightness-125',
+																'active:brightness-90 dark:active:brightness-125'
+															)}
+															style={{
+																backgroundColor: color,
+															}}
+														>
+															Open in App
+															<Icon color={'#fff'}>{icon}</Icon>
+														</a>
+													)}
+													<a
+														href={processUrl(url)}
+														className={cx(
+															'w-full box-border flex-center gap-2 whitespace-nowrap px-6 py-2.5 rounded uppercase',
+															'transition-all duration-200 ease-in-out',
+															isMobile
+																? 'text-gray-800 dark:text-gray-50'
+																: 'text-white dark:text-gray-50',
+															'hover:brightness-95',
+															'dark:hover:brightness-125',
+															'active:brightness-90 dark:active:brightness-125',
+															'border dark:border-gray-500'
+														)}
+														target='_blank'
+														rel='noopener noreferrer'
+														style={
+															isMobile
+																? {}
+																: {
+																		backgroundColor: color,
+																  }
+														}
+													>
+														Open New tab
+														<HiExternalLink />
+													</a>
+													<a
+														href={processUrl(url)}
+														className={cx(
+															'w-full box-border flex-center gap-2 whitespace-nowrap px-6 py-2.5 rounded uppercase',
+															'transition-all duration-200 ease-in-out',
+															'text-gray-800 dark:text-gray-50',
+															'hover:brightness-95',
+															'dark:hover:brightness-125',
+															'active:brightness-90 dark:active:brightness-125',
+															'border dark:border-gray-500'
+														)}
+														rel='noopener noreferrer'
+													>
+														Open Here
+													</a>
+												</div>
+											))}
+									</Tab.Panel>
+								);
+							}
+						)}
 				</Tab.Panels>
 			</Tab.Group>
 		</main>

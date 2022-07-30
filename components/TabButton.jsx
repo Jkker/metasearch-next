@@ -1,23 +1,12 @@
-import cx from 'classnames';
+import cx from 'clsx';
 import { useTheme } from 'next-themes';
 import { forwardRef } from 'react';
-import { FiExternalLink } from 'react-icons/fi';
 import { ClientOnly, Fade, Icon, LoadingIcon } from '.';
-
-function lightness(hex) {
-	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	const r = parseInt(result[1], 16) / 255;
-	const g = parseInt(result[2], 16) / 255;
-	const b = parseInt(result[3], 16) / 255;
-	const max = Math.max(r, g, b),
-		min = Math.min(r, g, b);
-	const l = (max + min) / 2;
-	return l;
-}
 
 function Button(
 	{
 		icon,
+		lightness,
 		color,
 		name,
 		display,
@@ -27,15 +16,12 @@ function Button(
 		onMouseDown,
 		onClick,
 		onMouseUp,
-		embeddable,
-		...props
 	},
 	ref
 ) {
 	const { theme, resolvedTheme } = useTheme();
 	const dark = theme === 'dark' || resolvedTheme === 'dark';
-	const l = lightness(color);
-	const newColor = l < 0.2 && dark ? '#fff' : color;
+	const newColor = lightness < 0.2 && dark ? '#fff' : color;
 	return (
 		<ClientOnly>
 			<button
@@ -72,10 +58,7 @@ function Button(
 					</Fade>
 				</span>
 				<Icon color={selected ? '#fff' : newColor}>{icon}</Icon>
-				<span className='hidden md:flex md:ml-2 whitespace-nowrap items-center'>
-					{name}
-					{!embeddable && <FiExternalLink className='ml-[6px] w-4 h-4' />}
-				</span>
+				<span className='hidden md:flex md:ml-2 whitespace-nowrap items-center'>{name}</span>
 			</button>
 		</ClientOnly>
 	);

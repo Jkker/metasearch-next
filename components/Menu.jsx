@@ -1,5 +1,5 @@
 import { Menu, Transition } from '@headlessui/react';
-import cx from 'classnames';
+import cx from 'clsx';
 import { Fragment } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 

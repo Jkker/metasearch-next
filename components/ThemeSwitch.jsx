@@ -1,5 +1,5 @@
 import { Switch } from '@headlessui/react';
-import cx from 'classnames';
+import cx from 'clsx';
 import { useTheme } from 'next-themes';
 import { ClientOnly } from '.';
 import { forwardRef } from 'react';
