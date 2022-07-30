@@ -174,81 +174,83 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		if (!q) inputRef.current.focus();
 
 		// Register keyboard shortcuts
-		window.addEventListener('keydown', (e) => {
-			const key = e.key;
+		if (isMobile) {
+			window.addEventListener('keydown', (e) => {
+				const key = e.key;
 
-			const inputFocused = document.activeElement === inputRef.current;
+				const inputFocused = document.activeElement === inputRef.current;
 
-			if (key === 'Enter' && !inputFocused) {
-				setTabIndex((currIndex) => {
-					const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
-					if (url) openLink(url);
-					return currIndex;
-				});
-				return;
-			}
-			if (inputFocused) {
-				if (['Escape'].includes(key)) {
-					inputRef.current.blur();
-					TabListRef.current.focus();
+				if (key === 'Enter' && !inputFocused) {
+					setTabIndex((currIndex) => {
+						const url = document?.getElementById?.(`frame-${currIndex}`)?.src;
+						if (url) openLink(url);
+						return currIndex;
+					});
+					return;
 				}
-				return;
-			} else {
-				switch (key) {
-					case '/':
-					case '\\':
-						e.preventDefault();
-						inputRef.current.focus();
-						return;
-					case 'ArrowUp':
-					case 'ArrowLeft':
-						e.preventDefault();
-						goToPreviousTab();
-						return;
-					case 'ArrowRight':
-					case 'ArrowDown':
-						e.preventDefault();
-						goToNextTab();
-						return;
-					case 'Tab':
-						if (e.shiftKey && !e.ctrlKey) {
+				if (inputFocused) {
+					if (['Escape'].includes(key)) {
+						inputRef.current.blur();
+						TabListRef.current.focus();
+					}
+					return;
+				} else {
+					switch (key) {
+						case '/':
+						case '\\':
+							e.preventDefault();
+							inputRef.current.focus();
+							return;
+						case 'ArrowUp':
+						case 'ArrowLeft':
 							e.preventDefault();
 							goToPreviousTab();
-						} else if (!e.ctrlKey) {
+							return;
+						case 'ArrowRight':
+						case 'ArrowDown':
+							e.preventDefault();
 							goToNextTab();
-						}
-						return;
-				}
+							return;
+						case 'Tab':
+							if (e.shiftKey && !e.ctrlKey) {
+								e.preventDefault();
+								goToPreviousTab();
+							} else if (!e.ctrlKey) {
+								goToNextTab();
+							}
+							return;
+					}
 
-				if (key in tabHotkeys) {
-					setTabIndex((currIndex) => {
-						const nextIndex = getNextTabIndex(currIndex, key);
-						console.log(`🚀 ~ setTabIndex ~ nextIndex`, nextIndex, engines[nextIndex].name);
-						if (!engines[nextIndex].embeddable) {
-							console.log('!embeddable', engines[nextIndex].name);
-							openLink(processUrl(engines[nextIndex].url));
-							return currIndex;
-						}
-						if (nextIndex === currIndex) {
-							reloadPanel(nextIndex);
-							return currIndex;
-						}
-						setTabState((prev) => {
-							return {
-								...prev,
-								[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
-							};
+					if (key in tabHotkeys) {
+						setTabIndex((currIndex) => {
+							const nextIndex = getNextTabIndex(currIndex, key);
+							console.log(`🚀 ~ setTabIndex ~ nextIndex`, nextIndex, engines[nextIndex].name);
+							if (!engines[nextIndex].embeddable) {
+								console.log('!embeddable', engines[nextIndex].name);
+								openLink(processUrl(engines[nextIndex].url));
+								return currIndex;
+							}
+							if (nextIndex === currIndex) {
+								reloadPanel(nextIndex);
+								return currIndex;
+							}
+							setTabState((prev) => {
+								return {
+									...prev,
+									[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
+								};
+							});
+							setFirstFrameLoaded(true);
+
+							return nextIndex;
 						});
-						setFirstFrameLoaded(true);
-
-						return nextIndex;
-					});
+					}
 				}
-			}
-		});
-		return () => {
-			window.removeEventListener('keydown', () => {});
-		};
+			});
+			return () => {
+				window.removeEventListener('keydown', () => {});
+			};
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -337,7 +339,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 											if (tabIndex === index && query) reloadPanel(index);
 											if (!embeddable) {
 												e.preventDefault();
-
 											}
 										}}
 									/>
@@ -369,34 +370,36 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							/>
 						)}
 					</Tab.Panel>
-					{engines.slice(1, engines.length).map(({ preload, name, url, display, embeddable }, prevIndex) => {
-						const index = prevIndex + 1;
-						const isSelected = tabIndex === index;
-						return (
-							<Tab.Panel
-								className={cx('w-full', display)}
-								key={index}
-								style={{
-									display: isSelected ? 'block' : 'none',
-								}}
-								static
-							>
-								{embeddable && query && firstFrameLoaded && (isSelected || preload) && (
-									<iframe
-										{...iFrameProps}
-										id={`frame-${index}`}
-										title={name}
-										key={name}
-										loading={preload ? 'eager' : 'lazy'}
-										src={processUrl(url)}
-										onLoad={() => {
-											setTabState((prev) => ({ ...prev, [index]: READY }));
-										}}
-									/>
-								)}
-							</Tab.Panel>
-						);
-					})}
+					{engines
+						.slice(1, engines.length)
+						.map(({ preload, name, url, display, embeddable }, prevIndex) => {
+							const index = prevIndex + 1;
+							const isSelected = tabIndex === index;
+							return (
+								<Tab.Panel
+									className={cx('w-full', display)}
+									key={index}
+									style={{
+										display: isSelected ? 'block' : 'none',
+									}}
+									static
+								>
+									{embeddable && query && firstFrameLoaded && (isSelected || preload) && (
+										<iframe
+											{...iFrameProps}
+											id={`frame-${index}`}
+											title={name}
+											key={name}
+											loading={preload ? 'eager' : 'lazy'}
+											src={processUrl(url)}
+											onLoad={() => {
+												setTabState((prev) => ({ ...prev, [index]: READY }));
+											}}
+										/>
+									)}
+								</Tab.Panel>
+							);
+						})}
 				</Tab.Panels>
 			</Tab.Group>
 		</main>
