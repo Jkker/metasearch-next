@@ -86,7 +86,7 @@ export const getStaticProps = async () => {
 		};
 	};
 
-	const processDisplay = ({ name, key, embeddable, ...item }) => ({
+	const processDisplay = ({ name, key, ...item }) => ({
 		name,
 		key: key.toLowerCase() || name.toLowerCase(),
 		display: cx(
@@ -94,7 +94,6 @@ export const getStaticProps = async () => {
 			item.desktop === false && 'flex sm:hidden'
 		),
 		state: INIT,
-		embeddable: true,
 		...item,
 		preload: false,
 	});
@@ -137,10 +136,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 
 	const onEngineChange = (index) => {
 		setTabIndex((prev) => {
-			if (!engines[index].embeddable) {
-				openLink(processUrl(engines[index].url));
-				return prev;
-			}
+			// if (!engines[index].embeddable) {
+			// 	openLink(processUrl(engines[index].url));
+			// 	return prev;
+			// }
 			return index;
 		});
 		setTabState((prev) => ({
@@ -174,7 +173,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		if (!q) inputRef.current.focus();
 
 		// Register keyboard shortcuts
-		if (isMobile) {
+		if (!isMobile) {
 			window.addEventListener('keydown', (e) => {
 				const key = e.key;
 
@@ -224,12 +223,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 					if (key in tabHotkeys) {
 						setTabIndex((currIndex) => {
 							const nextIndex = getNextTabIndex(currIndex, key);
-							console.log(`🚀 ~ setTabIndex ~ nextIndex`, nextIndex, engines[nextIndex].name);
-							if (!engines[nextIndex].embeddable) {
-								console.log('!embeddable', engines[nextIndex].name);
-								openLink(processUrl(engines[nextIndex].url));
-								return currIndex;
-							}
+							// if (!engines[nextIndex].embeddable) {
+							// 	openLink(processUrl(engines[nextIndex].url));
+							// 	return currIndex;
+							// }
 							if (nextIndex === currIndex) {
 								reloadPanel(nextIndex);
 								return currIndex;
@@ -337,9 +334,9 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 										onClick={(e) => {
 											// Reload the page if the user clicks the same engine twice
 											if (tabIndex === index && query) reloadPanel(index);
-											if (!embeddable) {
-												e.preventDefault();
-											}
+											// if (!embeddable) {
+											// 	e.preventDefault();
+											// }
 										}}
 									/>
 								)}
@@ -397,6 +394,11 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 											}}
 										/>
 									)}
+									{/* <ul>
+										<li>name: {name}</li>
+										<li>embeddable: {JSON.stringify(embeddable)}</li>
+										<li>preload: {JSON.stringify(preload)}</li>
+									</ul> */}
 								</Tab.Panel>
 							);
 						})}

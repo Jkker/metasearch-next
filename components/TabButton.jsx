@@ -73,7 +73,8 @@ function Button(
 				</span>
 				<Icon color={selected ? '#fff' : newColor}>{icon}</Icon>
 				<span className='hidden md:flex md:ml-2 whitespace-nowrap items-center'>
-					{name} {!embeddable && <FiExternalLink className='ml-[6px] w-4 h-4 text-gray-500' />}
+					{name}
+					{!embeddable && <FiExternalLink className='ml-[6px] w-4 h-4' />}
 				</span>
 			</button>
 		</ClientOnly>
