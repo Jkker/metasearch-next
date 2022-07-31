@@ -134,6 +134,8 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const firstFrameLoaded = tabState[0] === READY;
 	const setFirstFrameLoaded = (args) => undefined;
 
+	const currentEngine = engines[tabIndex];
+
 	const onSearch = async (value) => {
 		const q = value.trim();
 		setQuery(q);
@@ -167,8 +169,8 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const reloadPanel = (index) => {
 		if (engines[index].embeddable) document.getElementById(`frame-${index}`).src += '';
 	};
-	const processUrl = (url = engines[tabIndex].url) => url.replace(/%s/g, encodeURIComponent(query));
-	const openLink = (link = processUrl()) => window?.open(link, '_blank', 'noopener', 'noreferrer');
+	const processUrl = (url) => url.replace(/%s/g, encodeURIComponent(query));
+	const openLink = (link) => window?.open(link, '_blank', 'noopener', 'noreferrer');
 
 	useEffect(() => {
 		// Get search query from url
@@ -178,7 +180,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		else inputRef.current.focus();
 
 		// Register keyboard shortcuts
-
 		const listener = (e) => {
 			const key = e.key;
 			const { altKey, ctrlKey, metaKey, shiftKey } = e;
@@ -249,7 +250,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 				}
 			}
 		};
-
 		if (!isMobile) {
 			window.addEventListener('keydown', listener);
 			return () => {
@@ -259,7 +259,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const pageTitle = query ? query + ' - ' + engines[tabIndex].name : 'Metasearch';
+	const pageTitle = query ? query + ' - ' + currentEngine.name : 'Metasearch';
 
 	return (
 		<main className='flex flex-col h-screen'>
@@ -300,18 +300,25 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 
 						<Menu>
 							<a
-								className={cx(
-									'whitespace-nowrap flex items-center justify-between w-full px-2 py-1',
-									'transition-all duration-200 ease-in-out',
-									'gap-2'
-								)}
-								href={processUrl()}
+								className='whitespace-nowrap flex items-center justify-between w-full px-2 py-1 transition-all duration-200 ease-in-out gap-2.5'
+								href={processUrl(currentEngine.url)}
 								target='_blank'
 								rel='noopener noreferrer'
 							>
-								Open
-								<FiExternalLink className='w-5 h-5' />
+								New tab
+								<HiExternalLink />
 							</a>
+							{isMobile && currentEngine.url_scheme && (
+								<a
+									className='whitespace-nowrap flex items-center justify-between w-full px-2 py-1 transition-all duration-200 ease-in-out gap-2.5'
+									href={processUrl(currentEngine.url_scheme)}
+									// target='_blank'
+									rel='noopener noreferrer'
+								>
+									Open App
+									<Icon color={currentEngine.color}>{currentEngine.icon}</Icon>
+								</a>
+							)}
 							<ThemeSwitch />
 						</Menu>
 					</nav>
@@ -339,7 +346,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 										onDoubleClick={() => {
 											openLink(processUrl(url));
 										}}
-										onClick={(e) => {
+										onClick={() => {
 											// Reload the page if the user clicks the same engine twice
 											if (tabIndex === index && query) reloadPanel(index);
 										}}

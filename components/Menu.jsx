@@ -35,7 +35,7 @@ export default function CustomMenu({ children = [], ...props }) {
 						leaveFrom='transform opacity-100 scale-100'
 						leaveTo='transform opacity-0 scale-95'
 					>
-						<Menu.Items className='absolute right-0 mt-1 mr-1 origin-top-right  divide-gray-100 rounded-md drop-shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none bg-white dark:bg-gray-700 p-2 space-y-2'>
+						<Menu.Items className='absolute right-0 mt-10 mr-1 origin-top-right  divide-gray-100 rounded-md drop-shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none bg-white dark:bg-gray-700 p-2 space-y-2'>
 							{children}
 						</Menu.Items>
 					</Transition>

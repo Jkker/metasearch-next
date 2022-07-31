@@ -27,19 +27,19 @@ function ThemeSwitch({ className = '', active, ...props }, ref) {
 	const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 	return (
 		<ClientOnly>
-			<Switch.Group as='div' className='flex gap-3 px-2 py-1 w-full justify-between'>
+			<Switch.Group as='div' className='flex gap-3 px-2 py-1 w-full justify-between items-center'>
 				<Switch.Label>Theme</Switch.Label>
 				<Switch
 					checked={isDark}
 					onChange={toggleTheme}
 					className={`
-          relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75 bg-gray-200 dark:bg-gray-500`}
+          relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75 bg-gray-200 dark:bg-gray-500`}
 				>
 					<span className='sr-only'>theme switch</span>
 					<span
 						aria-hidden='true'
-						className={`${isDark ? 'translate-x-6' : 'translate-x-0'}
-            pointer-events-none h-5 w-5 transform rounded-full shadow-lg ring-0 transition duration-200 ease-in-out bg-gray-400 dark:bg-gray-300 text-gray-100 dark:text-gray-500 flex-center`}
+						className={`${isDark ? 'translate-x-5' : 'translate-x-0'}
+            pointer-events-none h-4 w-4 transform rounded-full shadow-lg ring-0 transition duration-150 ease-in-out bg-gray-400 dark:bg-gray-300 text-gray-100 dark:text-gray-500 flex-center`}
 					>
 						<ThemeIcon isDark={!isDark} className='h-4 w-4' />
 					</span>
