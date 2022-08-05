@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
 import { isMobile } from 'react-device-detect';
-import { FiExternalLink, FiSearch } from 'react-icons/fi';
+import { FiSearch } from 'react-icons/fi';
 import { HiExternalLink } from 'react-icons/hi';
 import { TiDelete } from 'react-icons/ti';
 import { Fade, Icon, Menu, TabButton, ThemeSwitch } from '../components';
@@ -131,28 +131,34 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const [tabIndex, setTabIndex] = useState(0);
 	const [query, setQuery] = useState('');
 	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
-	const firstFrameLoaded = tabState[0] === READY;
-	const setFirstFrameLoaded = (args) => undefined;
+	const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
 
 	const currentEngine = engines[tabIndex];
 
 	const onSearch = async (value) => {
 		const q = value.trim();
 		setQuery(q);
-		router.push({ pathname: router.pathname, query: { q } }, undefined, {
-			shallow: true,
-		});
 		if (q.length > 0) inputRef.current.blur();
 	};
 
-	const onEngineChange = (index) => {
-		setTabIndex(index);
-		setTabState((prev) => ({
-			...prev,
-			[index]: prev[index] === INIT ? (engines[index].embeddable ? LOADING : READY) : prev[index],
-		}));
-		setFirstFrameLoaded(true);
-	};
+	const onEngineChange = (arg) =>
+		setTabIndex((currIndex) => {
+			const nextIndex = typeof arg === 'function' ? arg(currIndex) : arg;
+
+			if (nextIndex === currIndex) {
+				reloadPanel(nextIndex);
+				return currIndex;
+			}
+			if (engines[nextIndex].embeddable)
+				setTabState((prev) => {
+					return {
+						...prev,
+						[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
+					};
+				});
+			setFirstFrameLoaded(true);
+			return nextIndex;
+		});
 
 	const getNextTabIndex = (currIndex, key) => {
 		for (let i = currIndex + 1; i < engines.length + currIndex; i++) {
@@ -163,11 +169,14 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 	};
 
 	const goToPreviousTab = () =>
-		setTabIndex((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
-	const goToNextTab = () => setTabIndex((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
+		onEngineChange((prev) => (prev - 1 < 0 ? engines.length - 1 : prev - 1));
+	const goToNextTab = () => onEngineChange((prev) => (prev + 1 >= engines.length ? 0 : prev + 1));
 
 	const reloadPanel = (index) => {
-		if (engines[index].embeddable) document.getElementById(`frame-${index}`).src += '';
+		if (engines[index].embeddable) {
+			const el = document.getElementById(`frame-${index}`);
+			if (el) el.src += '';
+		}
 	};
 	const processUrl = (url) => url.replace(/%s/g, encodeURIComponent(query));
 	const openLink = (link) => window?.open(link, '_blank', 'noopener', 'noreferrer');
@@ -176,7 +185,9 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		// Get search query from url
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
+		const engine = params.get('engine');
 		if (q) setQuery(q);
+		if (engine) onEngineChange(engines.findIndex((e) => e.name === engine));
 		else inputRef.current.focus();
 
 		// Register keyboard shortcuts
@@ -230,23 +241,9 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 				}
 
 				if (key in tabHotkeys) {
-					setTabIndex((currIndex) => {
-						const nextIndex = getNextTabIndex(currIndex, key);
-
-						if (nextIndex === currIndex) {
-							reloadPanel(nextIndex);
-							return currIndex;
-						}
-						setTabState((prev) => {
-							return {
-								...prev,
-								[nextIndex]: prev[nextIndex] === INIT ? LOADING : prev[nextIndex],
-							};
-						});
-						setFirstFrameLoaded(true);
-
-						return nextIndex;
-					});
+					onEngineChange((currIndex) => getNextTabIndex(currIndex, key));
+				} else if (!isNaN(key)) {
+					onEngineChange(key - 1);
 				}
 			}
 		};
@@ -258,6 +255,18 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	// Update url params
+	useEffect(() => {
+		router.push(
+			{ pathname: router.pathname, query: { q: query, engine: engines[tabIndex].name } },
+			undefined,
+			{
+				shallow: true,
+			}
+		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query, tabIndex]);
 
 	const pageTitle = query ? query + ' - ' + currentEngine.name : 'Metasearch';
 
