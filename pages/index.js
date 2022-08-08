@@ -386,6 +386,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
+								style={{
+														  visibility: tabState[index] === READY ? 'visible' : 
+														  'hidden'
+														}}
 							/>
 						)}
 					</Tab.Panel>
