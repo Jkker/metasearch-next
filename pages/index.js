@@ -387,7 +387,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
 								style={isFirefox && isMobile? {
-														  visibility: tabState[index] === READY ? 'visible' : 
+														  visibility: tabState[0] === READY ? 'visible' : 
 														  'hidden'
 														} : {}}
 							/>
