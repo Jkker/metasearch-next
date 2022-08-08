@@ -13,6 +13,9 @@
 	*:focus {
 		outline: none;
 	}
+	iframe, body, html, :root {
+	  background: transparent;
+	}
 }
 
 @layer components {

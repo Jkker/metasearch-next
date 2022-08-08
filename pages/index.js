@@ -122,6 +122,7 @@ const iFrameProps = {
 	loading: 'eager',
 	referrerPolicy: 'no-referrer',
 	className: 'bg-transparent',
+	allowTransparency: 'true'
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
