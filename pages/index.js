@@ -420,6 +420,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														onLoad={() => {
 															setTabState((prev) => ({ ...prev, [index]: READY }));
 														}}
+														style={{
+														  visibility: tabState[index] === READY ? 'visible' : 
+														  'hidden'
+														}}
 													/>
 												)
 											) : (
