@@ -120,9 +120,7 @@ const iFrameProps = {
 	height: '100%',
 	frameBorder: '0',
 	loading: 'eager',
-	referrerPolicy: 'no-referrer',
-	className: 'bg-transparent',
-	allowTransparency: 'true'
+	referrerPolicy: 'no-referrer'
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
@@ -387,7 +385,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
 								style={isFirefox && isMobile? {
-														  visibility: tabState[0] === READY ? 'visible' : 
+														  visibility: tabState[0] === READY ?   'visible' : 
 														  'hidden'
 														} : {}}
 							/>
