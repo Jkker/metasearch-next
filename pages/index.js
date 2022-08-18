@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { DebounceInput } from 'react-debounce-input';
-import { isMobile } from 'react-device-detect';
+import { isMobile, isFirefox } from 'react-device-detect';
 import { FiSearch } from 'react-icons/fi';
 import { HiExternalLink } from 'react-icons/hi';
 import { TiDelete } from 'react-icons/ti';
@@ -120,8 +120,7 @@ const iFrameProps = {
 	height: '100%',
 	frameBorder: '0',
 	loading: 'eager',
-	referrerPolicy: 'no-referrer',
-	className: 'bg-transparent',
+	referrerPolicy: 'no-referrer'
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
@@ -385,6 +384,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
+								style={isFirefox && isMobile? {
+														  visibility: tabState[0] === READY ?   'visible' : 
+														  'hidden'
+														} : {}}
 							/>
 						)}
 					</Tab.Panel>
@@ -419,6 +422,10 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														onLoad={() => {
 															setTabState((prev) => ({ ...prev, [index]: READY }));
 														}}
+														style={isFirefox && isMobile? {
+														  visibility: tabState[index] === READY ? 'visible' : 
+														  'hidden'
+														} : {}}
 													/>
 												)
 											) : (
