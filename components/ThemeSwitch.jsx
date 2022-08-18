@@ -28,7 +28,7 @@ function ThemeSwitch({ className = '', active, ...props }, ref) {
 	return (
 		<ClientOnly>
 			<Switch.Group as='div' className='flex gap-3 px-2 py-1 w-full justify-between items-center'>
-				<Switch.Label>Theme</Switch.Label>
+				<Switch.Label>Dark</Switch.Label>
 				<Switch
 					checked={isDark}
 					onChange={toggleTheme}
