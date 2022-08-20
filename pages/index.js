@@ -286,6 +286,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							onChange={(event) => onSearch(event.target.value)}
 							className='w-full h-9 p-2 pl-9 bg-transparent'
 							id='search-input'
+						        type='search'
 						/>
 						<button
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
