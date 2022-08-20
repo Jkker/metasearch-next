@@ -1,11 +1,18 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"
   xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>Metasearch</ShortName>
   <Description>Metasearch</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://search.jkker.tk/favicon.ico</Image>
-  <Url rel="self" template="https://search.jkker.tk/opensearch.xml" type="application/opensearchdescription+xml"/>
-  <Url type="text/html" template="https://search.jkker.tk/?q={searchTerms}"/>
+  <Image width="16" height="16" type="image/x-icon">https://s.erry.dev/favicon.ico</Image>
+  <Url rel="self" template="https://s.erry.dev/opensearch.xml" type="application/opensearchdescription+xml"/>
   <Url type="application/x-suggestions+json" template="https://suggestqueries.google.com/complete/search?output=firefox&amp;client=firefox&amp;hl=en&amp;q={searchTerms}" resultDomain="suggestqueries.google.com"/>
-  <moz:SearchForm>https://search.jkker.tk</moz:SearchForm>
+  <moz:SearchForm>https://s.erry.dev</moz:SearchForm>
+  <Url method="get"
+    rel="results"
+    type="text/html"
+    template="https://s.erry.dev/?q={searchTerms}" />
+  <Language>en</Language>
+  <InputEncoding>UTF-8</InputEncoding>
 </OpenSearchDescription>
