@@ -6,6 +6,6 @@
   <Image width="16" height="16" type="image/x-icon">https://search.jkker.tk/favicon.ico</Image>
   <Url rel="self" template="https://search.jkker.tk/opensearch.xml" type="application/opensearchdescription+xml"/>
   <Url type="text/html" template="https://search.jkker.tk/?q={searchTerms}"/>
-  <Url template="https://www.google.com/complete/search?q={searchTerms}&inputencoding={inputEncoding}&outputencoding={outputEncoding}" rel="suggestions" type="application/x-suggestions+json"/>
+  <Url type="application/x-suggestions+json" template="https://suggestqueries.google.com/complete/search?output=firefox&amp;client=firefox&amp;hl=en&amp;q={searchTerms}" resultDomain="suggestqueries.google.com"/>
   <moz:SearchForm>https://search.jkker.tk</moz:SearchForm>
 </OpenSearchDescription>
