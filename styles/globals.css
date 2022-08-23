@@ -46,6 +46,9 @@
 	.nc-int-icon-rotate.nc-int-icon-state-b .nc-int-icon-b {
 		transform: rotate(0);
 	}
+	.acrylic {
+		backdrop-filter: blur(20px) saturate(180%);
+	}
 }
 
 @layer utilities {

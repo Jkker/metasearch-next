@@ -3,7 +3,6 @@ import cx from 'clsx';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { DebounceInput } from 'react-debounce-input';
 import { isMobile, isFirefox } from 'react-device-detect';
 import { FiSearch } from 'react-icons/fi';
 import { HiExternalLink } from 'react-icons/hi';
@@ -12,6 +11,7 @@ import { Fade, Icon, Menu, TabButton, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
 import { lightness } from '../utils';
+import AutoComplete from '../components/AutoComplete';
 
 const SiteStates = {
 	INIT: 0,
@@ -120,17 +120,18 @@ const iFrameProps = {
 	height: '100%',
 	frameBorder: '0',
 	loading: 'eager',
-	referrerPolicy: 'no-referrer'
+	referrerPolicy: 'no-referrer',
 };
 
 export default function Search({ engines, hotkeys: tabHotkeys }) {
 	const router = useRouter();
-	const TabListRef = useRef(null);
+	const tabListRef = useRef(null);
 	const inputRef = useRef(null);
 	const [tabIndex, setTabIndex] = useState(0);
 	const [query, setQuery] = useState('');
 	const [tabState, setTabState] = useState(engines.map(({ state }) => state));
 	const [firstFrameLoaded, setFirstFrameLoaded] = useState(false);
+	const [inputValue, setInputValue] = useState('');
 
 	const currentEngine = engines[tabIndex];
 
@@ -142,13 +143,14 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 
 	const onEngineChange = (arg) =>
 		setTabIndex((currIndex) => {
+			if (arg === -1) return 0;
 			const nextIndex = typeof arg === 'function' ? arg(currIndex) : arg;
 
 			if (nextIndex === currIndex) {
 				reloadPanel(nextIndex);
 				return currIndex;
 			}
-			if (engines[nextIndex].embeddable)
+			if (engines[nextIndex]?.embeddable)
 				setTabState((prev) => {
 					return {
 						...prev,
@@ -185,9 +187,12 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 		const params = new URLSearchParams(window.location.search);
 		const q = params.get('q');
 		const engine = params.get('engine');
-		if (q) setQuery(q);
+		if (q && q.trim().length !== 0) {
+			// inputRef.current.value = q;
+			setInputValue(q);
+			setQuery(q);
+		} else inputRef.current.focus();
 		if (engine) onEngineChange(engines.findIndex((e) => e.name === engine));
-		else inputRef.current.focus();
 
 		// Register keyboard shortcuts
 		const listener = (e) => {
@@ -209,7 +214,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 			if (inputFocused) {
 				if (['Escape'].includes(key)) {
 					inputRef.current.blur();
-					TabListRef.current.focus();
+					tabListRef.current.focus();
 				}
 				return;
 			} else {
@@ -219,13 +224,13 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 						e.preventDefault();
 						inputRef.current.focus();
 						return;
-					case 'ArrowUp':
+					// case 'ArrowUp':
 					case 'ArrowLeft':
 						e.preventDefault();
 						goToPreviousTab();
 						return;
 					case 'ArrowRight':
-					case 'ArrowDown':
+						// case 'ArrowDown':
 						e.preventDefault();
 						goToNextTab();
 						return;
@@ -278,36 +283,44 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange} manual>
 				<header>
 					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
-						<DebounceInput
-							minLength={1}
-							inputRef={inputRef}
-							debounceTimeout={isMobile ? 10000 : 800}
-							value={query}
-							onChange={(event) => onSearch(event.target.value)}
-							className='w-full h-9 p-2 pl-9 bg-transparent'
+						{/* <form
+							onSubmit={(e) => {
+								e.preventDefault();
+								onSearch(e.target.elements.s.value);
+							}}
+							className='w-full'
+						>
+							<input
+								ref={inputRef}
+								className='w-full h-9 p-2 pl-9 bg-transparent'
+								id='search-input'
+								type='search'
+								name='s'
+								autoComplete='off'
+							/>
+						</form> */}
+						<AutoComplete
+							value={inputValue}
+							onChange={setInputValue}
+							onSubmit={onSearch}
+							ref={inputRef}
+							className='w-full h-9 p-2 pl-9 bg-transparent z-20 drop-shadow-sm'
 							id='search-input'
-						        type='search'
-						        name='s'
+							name='q'
+							type='text'
+							title='Search'
+							aria-label='Search'
+							optionClassName='block w-full text-left pr-2 py-1 pl-9'
 						/>
 						<button
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
-							onClick={(e) => {
+							onClick={() => {
 								if (query) reloadPanel(tabIndex);
 							}}
 							title='Search'
 						>
 							<FiSearch />
 						</button>
-						<Fade show={query.length > 0}>
-							<button
-								className='absolute top-0 right-9 h-9 w-9 flex-center opacity-40'
-								onClick={() => onSearch('')}
-								title='Clear search'
-							>
-								<TiDelete />
-							</button>
-						</Fade>
-
 						<Menu>
 							<a
 								className='whitespace-nowrap flex items-center justify-between w-full px-2 py-1 transition-all duration-200 ease-in-out gap-2.5'
@@ -322,7 +335,6 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 								<a
 									className='whitespace-nowrap flex items-center justify-between w-full px-2 py-1 transition-all duration-200 ease-in-out gap-2.5'
 									href={processUrl(currentEngine.url_scheme)}
-									// target='_blank'
 									rel='noopener noreferrer'
 								>
 									Open App
@@ -334,12 +346,12 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 					</nav>
 					<Tab.List
 						className='z-10 flex w-full justify-start bg-white dark:bg-gray-800 drop-shadow-lg max-w-screen overflow-x-scroll scrollbar-hide'
-						ref={TabListRef}
+						ref={tabListRef}
 						onWheel={(e) => {
 							// Convert vertical scroll to horizontal scroll
 							if (e.deltaY == 0) return;
-							TabListRef.current.scrollTo({
-								left: TabListRef.current.scrollLeft + e.deltaY,
+							tabListRef.current.scrollTo({
+								left: tabListRef.current.scrollLeft + e.deltaY,
 								behavior: 'smooth',
 							});
 						}}
@@ -386,10 +398,13 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 									setFirstFrameLoaded(true);
 									setTabState((prev) => ({ ...prev, 0: READY }));
 								}}
-								style={isFirefox && isMobile? {
-														  visibility: tabState[0] === READY ?   'visible' : 
-														  'hidden'
-														} : {}}
+								style={
+									isFirefox && isMobile
+										? {
+												visibility: tabState[0] === READY ? 'visible' : 'hidden',
+										  }
+										: {}
+								}
 							/>
 						)}
 					</Tab.Panel>
@@ -424,10 +439,13 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 														onLoad={() => {
 															setTabState((prev) => ({ ...prev, [index]: READY }));
 														}}
-														style={isFirefox && isMobile? {
-														  visibility: tabState[index] === READY ? 'visible' : 
-														  'hidden'
-														} : {}}
+														style={
+															isFirefox && isMobile
+																? {
+																		visibility: tabState[index] === READY ? 'visible' : 'hidden',
+																  }
+																: {}
+														}
 													/>
 												)
 											) : (
