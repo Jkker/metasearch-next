@@ -7,7 +7,7 @@
   <InputEncoding>UTF-8</InputEncoding>
   <Image width="16" height="16" type="image/x-icon">https://s.erry.dev/favicon.ico</Image>
   <Url rel="self" template="https://s.erry.dev/opensearch.xml" type="application/opensearchdescription+xml"/>
-  <Url type="application/x-suggestions+json" template="https://suggestqueries.google.com/complete/search?output=firefox&amp;client=firefox&amp;hl=en&amp;q={searchTerms}" resultDomain="suggestqueries.google.com"/>
+  <Url type="application/x-suggestions+json" template="google.com/complete/search?client=chrome&amp;q={searchTerms}" />
   <moz:SearchForm>https://s.erry.dev</moz:SearchForm>
   <Url method="get"
     rel="results"
