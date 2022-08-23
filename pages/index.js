@@ -6,8 +6,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { isMobile, isFirefox } from 'react-device-detect';
 import { FiSearch } from 'react-icons/fi';
 import { HiExternalLink } from 'react-icons/hi';
-import { TiDelete } from 'react-icons/ti';
-import { Fade, Icon, Menu, TabButton, ThemeSwitch } from '../components';
+import { Icon, Menu, TabButton, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
 import Engine from '../models/Engine';
 import { lightness } from '../utils';
@@ -283,34 +282,15 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 			<Tab.Group selectedIndex={tabIndex} onChange={onEngineChange} manual>
 				<header>
 					<nav className='input-bar flex shadow-md z-20 dark:border-0 bg-white dark:bg-gray-700'>
-						{/* <form
-							onSubmit={(e) => {
-								e.preventDefault();
-								onSearch(e.target.elements.s.value);
-							}}
-							className='w-full'
-						>
-							<input
-								ref={inputRef}
-								className='w-full h-9 p-2 pl-9 bg-transparent'
-								id='search-input'
-								type='search'
-								name='s'
-								autoComplete='off'
-							/>
-						</form> */}
 						<AutoComplete
 							value={inputValue}
 							onChange={setInputValue}
 							onSubmit={onSearch}
 							ref={inputRef}
-							className='w-full h-9 p-2 pl-9 bg-transparent z-20 drop-shadow-sm'
-							id='search-input'
+							className='w-full h-9 p-2 pl-9 bg-transparent z-20 drop-shadow-sm hide-clear'
 							name='q'
-							type='text'
-							title='Search'
+							type='search'
 							aria-label='Search'
-							optionClassName='block w-full text-left pr-2 py-1 pl-9'
 						/>
 						<button
 							className='absolute top-0 left-0 h-9 w-9 flex-center'
