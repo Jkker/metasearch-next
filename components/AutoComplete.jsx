@@ -1,12 +1,13 @@
 import cx from 'clsx';
 import { forwardRef, useRef, useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { FiArrowLeft, FiSearch } from 'react-icons/fi';
 import { TiDelete } from 'react-icons/ti';
 import { Fade } from '../components';
+import Rotate from '../components/Rotate';
 
 const URL = '/api/complete?q=';
 
-const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
+const AutoComplete = ({ onSubmit, value, onChange, leftAction, ...inputProps }, ref) => {
 	const [open, setOpen] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [data, setData] = useState([undefined, []]);
@@ -20,7 +21,7 @@ const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
 			const response = await fetch(URL + encodeURIComponent(value));
 			const newData = await response.json();
 			setData(newData);
-			console.log(`🚀 getAutoSuggest`, value, newData);
+			// console.log(`🚀 getAutoSuggest`, value, newData);
 		} else {
 			setData([undefined, []]);
 		}
@@ -58,35 +59,52 @@ const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
 	};
 
 	const handleKeyDown = (e) => {
-		if (e.key === 'ArrowDown') {
-			e.preventDefault();
-			setActiveIndex((activeIndex) => {
-				const nextIndex = Math.min(activeIndex + 1, options.length - 1);
-				onChange(options[nextIndex]);
-				return nextIndex;
-			});
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault();
-			setActiveIndex((activeIndex) => {
-				const nextIndex = Math.max(activeIndex - 1, -1);
-				onChange(options[nextIndex]);
-				return nextIndex;
-			});
-		} else if (e.key === 'Enter') {
-			e.preventDefault();
-			if (activeIndex > -1) {
-				const value = options[activeIndex];
-				handleSelect(value);
-			} else {
-				handleSubmit(e.target.value);
+		switch (e.key) {
+			case 'ArrowDown': {
+				e.preventDefault();
+				setActiveIndex((activeIndex) => {
+					const nextIndex = Math.min(activeIndex + 1, options.length - 1);
+					onChange(options[nextIndex]);
+					return nextIndex;
+				});
+				break;
+			}
+			case 'ArrowUp': {
+				e.preventDefault();
+				setActiveIndex((activeIndex) => {
+					const nextIndex = Math.max(activeIndex - 1, -1);
+					onChange(options[nextIndex]);
+					return nextIndex;
+				});
+				break;
+			}
+			case 'Enter': {
+				e.preventDefault();
+				if (activeIndex > -1) {
+					const value = options[activeIndex];
+					handleSelect(value);
+				} else {
+					handleSubmit(e.target.value);
+				}
+				break;
+			}
+			case 'Escape': {
+				e.preventDefault();
+				ref.current.blur();
+				break;
 			}
 		}
 	};
+
+	const handleClose = () => setOpen(false);
+
+	const validOpen = open && options && options.length;
 
 	return (
 		<div className='relative w-full' ref={containerRef}>
 			<input
 				aria-autocomplete='both'
+				aria-controls='autocomplete-listbox'
 				autoCapitalize='off'
 				autoComplete='off'
 				autoCorrect='off'
@@ -111,9 +129,12 @@ const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
 
 			<div
 				className={cx(
-					'acrylic flex-col w-screen absolute top-9 z-10 border-t-gray-200 dark:border-t-gray-600 drop-shadow-2xl overflow-hidden transition-all ease-in-out duration-100 bg-white/60 dark:bg-gray-700/50',
-					open && options && options.length ? ' border-t h-auto' : 'h-0'
+					'acrylic flex-col w-screen absolute top-9 z-30 border-t-gray-200 dark:border-t-gray-600 drop-shadow-2xl overflow-hidden transition-all ease-in-out duration-100 bg-white/60 dark:bg-gray-700/50',
+					validOpen ? ' border-t h-auto' : 'h-0'
 				)}
+				role='listbox'
+				aria-label='Autocomplete Suggestions'
+				id='autocomplete-listbox'
 			>
 				{options.map((option, index) => (
 					<button
@@ -125,11 +146,11 @@ const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
 								: 'hover:bg-gray-400/20 dark:hover:bg-gray-300/30'
 						)}
 						key={option}
-						value={option}
-						// onMouseEnter={() => setActiveIndex(index)}
 						onClick={() => {
 							handleSelect(option);
 						}}
+						role='option'
+						aria-selected={activeIndex === index}
 					>
 						<span className='h-9 w-9 flex-center shrink-0'>
 							<FiSearch />
@@ -138,6 +159,16 @@ const AutoComplete = ({ onSubmit, value, onChange, ...inputProps }, ref) => {
 					</button>
 				))}
 			</div>
+			<button
+				className='absolute top-0 left-0 h-9 w-9 flex-center'
+				onClick={validOpen ? handleClose : leftAction}
+				title={validOpen ? 'Close' : 'Search'}
+			>
+				<Rotate show={validOpen}>
+					<FiArrowLeft />
+					<FiSearch />
+				</Rotate>
+			</button>
 			<Fade show={value?.length}>
 				<button
 					className='absolute top-0 right-0 h-9 w-9 flex-center opacity-40'

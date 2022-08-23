@@ -4,7 +4,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { isMobile, isFirefox } from 'react-device-detect';
-import { FiSearch } from 'react-icons/fi';
 import { HiExternalLink } from 'react-icons/hi';
 import { Icon, Menu, TabButton, ThemeSwitch } from '../components';
 import dbConnect from '../lib/dbConnect';
@@ -212,7 +211,7 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 			}
 			if (inputFocused) {
 				if (['Escape'].includes(key)) {
-					inputRef.current.blur();
+					// inputRef.current.blur();
 					tabListRef.current.focus();
 				}
 				return;
@@ -287,20 +286,14 @@ export default function Search({ engines, hotkeys: tabHotkeys }) {
 							onChange={setInputValue}
 							onSubmit={onSearch}
 							ref={inputRef}
+							leftAction={() => {
+								if (query) reloadPanel(tabIndex);
+							}}
 							className='w-full h-9 p-2 pl-9 bg-transparent z-20 drop-shadow-sm hide-clear'
 							name='q'
 							type='search'
 							aria-label='Search'
 						/>
-						<button
-							className='absolute top-0 left-0 h-9 w-9 flex-center'
-							onClick={() => {
-								if (query) reloadPanel(tabIndex);
-							}}
-							title='Search'
-						>
-							<FiSearch />
-						</button>
 						<Menu>
 							<a
 								className='whitespace-nowrap flex items-center justify-between w-full px-2 py-1 transition-all duration-200 ease-in-out gap-2.5'

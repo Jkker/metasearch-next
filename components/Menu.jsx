@@ -2,29 +2,26 @@ import { Menu, Transition } from '@headlessui/react';
 import cx from 'clsx';
 import { Fragment } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
+import Rotate from '../components/Rotate';
 
 export default function CustomMenu({ children = [], ...props }) {
 	return (
-		<Menu as='div' className='flex z-10 relative' {...props}>
+		<Menu as='div' className='flex z-40 relative' {...props}>
 			{({ open }) => (
 				<>
 					<Menu.Button
 						className={cx(
-							'whitespace-nowrap flex-center h-9 w-9 relative text-lg',
+							'flex-center h-9 w-9 ',
 							'bg-white dark:bg-gray-700',
 							'transition-all duration-200 ease-in-out',
 							'hover:brightness-95 dark:hover:brightness-125',
 							'active:brightness-90 dark:active:brightness-125'
 						)}
 					>
-						<div
-							className={cx('nc-int-icon js-nc-int-icon nc-int-icon-rotate fill-current', {
-								'nc-int-icon-state-b': !open,
-							})}
-						>
-							<FiX className='nc-int-icon-a' />
-							<FiMenu className='nc-int-icon-b' />
-						</div>
+						<Rotate show={open}>
+							<FiX />
+							<FiMenu />
+						</Rotate>
 					</Menu.Button>
 					<Transition
 						as={Fragment}
